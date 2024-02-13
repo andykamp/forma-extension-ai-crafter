@@ -421,6 +421,11 @@
   resolved "https://registry.yarnpkg.com/@types/file-saver/-/file-saver-2.0.6.tgz#914688eec1ccce7dd1bf655c0b0a178e89303589"
   integrity sha512-Mw671DVqoMHbjw0w4v2iiOro01dlT/WhWp5uwecBa0Wg8c+bcZOjgF1ndBnlaxhtvFCgTRBtsGivSVhrK/vnag==
 
+"@types/geojson@^7946.0.13":
+  version "7946.0.14"
+  resolved "https://registry.yarnpkg.com/@types/geojson/-/geojson-7946.0.14.tgz#319b63ad6df705ee2a65a73ef042c8271e696613"
+  integrity sha512-WCfD5Ht3ZesJUsONdhvm84dmzWOiOzOAqOncN0++w0lBw1o8OuDNJF2McvvCef/yBqb/HYRahp1BYtODFQ8bRg==
+
 "@types/lodash@4.14.198":
   version "4.14.198"
   resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.198.tgz#4d27465257011aedc741a809f1269941fa2c5d4c"
@@ -574,10 +579,12 @@ file-saver@^2.0.5:
   resolved "https://registry.yarnpkg.com/file-saver/-/file-saver-2.0.5.tgz#d61cfe2ce059f414d899e9dd6d4107ee25670c38"
   integrity sha512-P9bmyZ3h/PRG+Nzga+rbdI4OEpNDzAVyy74uVO9ATgzLK6VtAsYybF/+TOCvrc0MO793d6+42lLyZTw7/ArVzA==
 
-forma-embedded-view-sdk@0.44.0:
-  version "0.44.0"
-  resolved "https://registry.yarnpkg.com/forma-embedded-view-sdk/-/forma-embedded-view-sdk-0.44.0.tgz#51c456d8abb9baf241c576f3325f3153532dcbdd"
-  integrity sha512-UxkwBMsHMKUiNGwj8WGHLYtiqbW4dWrRl0wZ6AJBz5865m9uCbINaUdWbWm6uXoCaltS083DOsgGlWfECVQKFw==
+forma-embedded-view-sdk@0.53.0:
+  version "0.53.0"
+  resolved "https://registry.yarnpkg.com/forma-embedded-view-sdk/-/forma-embedded-view-sdk-0.53.0.tgz#a2610a0f06cf938a512f5ab457f4fcee9e43ee7a"
+  integrity sha512-3g4x1AHnwZ65eA5Gl97MXtw7XDPI0hedsv/T2F6PRvF+hZdnhVw4UNEBamoV2KB/RlC1Ar/dtgMr08Q5jJlWsA==
+  dependencies:
+    "@types/geojson" "^7946.0.13"
 
 fsevents@~2.3.2:
   version "2.3.3"
