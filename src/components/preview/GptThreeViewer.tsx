@@ -1,21 +1,22 @@
 import { Forma } from "forma-embedded-view-sdk/auto"
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useEffect, useRef, useState, useCallback } from 'preact/hooks';
 import * as THREE from 'three';
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
 import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter"
-import { DUMMY_STR_CODE } from "./constants"
-import { 
-  addPolygon, 
+import {
+  addPolygon,
   useResize,
-  useInjectCode
+  useInjectCode,
+  alignSceneChildrenToElevation
 } from "./utils"
 
 type GptThreeViewerInput = { code: string }
 
 const isRaycastHeperEnabled = true
-let renderIteration = 0
 const TERRAIN_ID = 'terrain'
 const BUILDINGS_ID = 'buildings'
+
+let renderIteration = 0
 
 function GptThreeViewer(props: GptThreeViewerInput) {
   const { code } = props;
@@ -37,9 +38,6 @@ function GptThreeViewer(props: GptThreeViewerInput) {
     const terrainTriangles = await Forma.geometry.getTriangles({
       path: terrainPath[0],
     })
-    // const bbox = await Forma.terrain.getBbox()
-    // console.log('bbox', bbox);
-    // const terrainTriangles = await Forma.geometry.getTriangles()
     const geometry = new THREE.BufferGeometry()
     geometry.setAttribute(
       "position",
@@ -102,100 +100,15 @@ function GptThreeViewer(props: GptThreeViewerInput) {
 
   }
 
-  async function alignElevatoin() {
-    if (!terrainMesh) return
-
-    function addRaycastHelper(
-      scene: THREE.Scene,
-      x: number,
-      y: number,
-      z: number,
-    ) {
-      const material = new THREE.LineBasicMaterial({
-        color: 0x0000ff
-      });
-
-      const offset = 1000
-      const points = [];
-      points.push(new THREE.Vector3(x, y+offset, z));
-      points.push(new THREE.Vector3(x, y+offset, z));
-
-      const geometry = new THREE.BufferGeometry().setFromPoints(points);
-
-      const line = new THREE.Line(geometry, material);
-
-      scene.add(line);
-    }
-
-
-
-    function getThreejsElevation(x: number, z: number, surfaceMesh: THREE.Mesh) {
-
-      const someHighValueAboveSurface = 1000
-      const raycaster = new THREE.Raycaster();
-      const downVector = new THREE.Vector3(0, -1, 0); // Direction: down
-      const originPoint = new THREE.Vector3(
-        x,
-        someHighValueAboveSurface,
-        z,
-      ); // Start the ray above the surface
-
-      raycaster.set(originPoint, downVector);
-
-      const intersects = raycaster.intersectObject(surfaceMesh, true);
-
-      if (intersects.length > 0) {
-        const intersectionPoint = intersects[0].point;
-        return intersectionPoint.y
-      } else {
-        console.log("No intersection found. Ensure the point is above the surface and within bounds.");
-        return null
-      }
-    }
-
-    scene.traverse(async (child) => {
-      const userData = child.userData
-      if (userData.id === TERRAIN_ID || userData.id === BUILDINGS_ID) return
-      const { x, y, z } = child.position
-      // const elevation = await Forma.terrain.getElevationAt({ x, y: z })
-      const elevation = getThreejsElevation(x, z, terrainMesh) || 0
-      if (isRaycastHeperEnabled) {
-        addRaycastHelper(scene, x, y, z)
-      }
-
-      child.position.y += elevation
-    })
-  }
-
-  // render loop
-
-  useEffect(() => {
-    if (!camera || !renderer) return
-    renderIteration++
-    const currentRenderIteration = renderIteration
-
-    // Render the scene
-    function loop() {
-      if (camera != null && renderer != null) {
-
-        renderer.render(scene, camera)
-        if (currentRenderIteration === renderIteration) {
-          requestAnimationFrame(loop)
-        }
-      }
-    }
-    requestAnimationFrame(loop)
-  }, [camera, renderer])
-
-  // resize
-
+  // --------------------------------------
+  // THREEJS setup
+  // --------------------------------------
 
   useEffect(() => {
     if (!canvasRef.current) return
     const canvas = canvasRef.current;
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    console.log('canvasss', canvas);
 
     // Setup basic THREE js app for the canvas
     const renderer = new THREE.WebGLRenderer({
@@ -205,7 +118,7 @@ function GptThreeViewer(props: GptThreeViewerInput) {
     })
 
     setRenderer(renderer)
-    // scene.background = new THREE.Color(0xffffff);
+    scene.background = new THREE.Color(0xffffff);
 
 
     const newCamera = new THREE.PerspectiveCamera(
@@ -231,12 +144,42 @@ function GptThreeViewer(props: GptThreeViewerInput) {
     initPolygon()
   }, [])
 
+  useEffect(() => {
+    if (!camera || !renderer) return
+    renderIteration++
+    const currentRenderIteration = renderIteration
+
+    // Render the scene
+    function loop() {
+      if (camera != null && renderer != null) {
+
+        renderer.render(scene, camera)
+        if (currentRenderIteration === renderIteration) {
+          requestAnimationFrame(loop)
+        }
+      }
+    }
+    requestAnimationFrame(loop)
+  }, [camera, renderer])
+
+  // --------------------------------------
+  // --------------------------------------
+
+  const alignElevatoin = useCallback(async () => {
+    const blacklistedIds = [TERRAIN_ID, BUILDINGS_ID]
+    await alignSceneChildrenToElevation({ scene, terrainMesh, isRaycastHeperEnabled, blacklistedIds })
+  }, [scene, terrainMesh, buildingsMesh])
+
   // resizer
   useResize({ camera, renderer, canvasRef })
 
-
   // code execution
-  useInjectCode({ camera, renderer, scene, canvasRef, terrainMesh, code, cb:alignElevatoin })
+  useInjectCode({ camera, renderer, scene, canvasRef, terrainMesh, code, cb: alignElevatoin })
+
+
+  // --------------------------------------
+  // UI buttons etc
+  // --------------------------------------
 
   function togglePolygon() {
     if (polygonMesh) {
@@ -285,7 +228,8 @@ function GptThreeViewer(props: GptThreeViewerInput) {
     }
   }
 
-
+  // --------------------------------------
+  // --------------------------------------
 
   return (
     <>
