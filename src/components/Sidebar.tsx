@@ -1,3 +1,4 @@
+import { FloatPanelOpener } from "./FloatPanelOpener";
 import DaylightSection from "./daylight/DaylightSection";
 import TestMeshSection from "./_testMesh/TestMeshSection";
 import TestInfoSection from "./_testInfo/TestInfoSection";
@@ -8,6 +9,7 @@ export default function Sidebar() {
       <DaylightSection/>
       <TestMeshSection/>
       <TestInfoSection/>
+      <FloatPanelOpener/>
     </>
   );
 }

@@ -1,7 +1,7 @@
 import { h, Component } from 'preact';
 import Router from 'preact-router';
 import App from "./app.tsx";
-import ThreejsScene from './components/ThreejsScene';
+import FloatingPanel from './components/FloatingPanel';
 
 export default class Routes extends Component {
   render() {
@@ -9,7 +9,7 @@ export default class Routes extends Component {
       <div id="app">
         <Router>
           <App path="/" />
-          <ThreejsScene path="/floating-panel" />
+          <FloatingPanel path="/floating-panel" />
         </Router>
       </div>
     );
