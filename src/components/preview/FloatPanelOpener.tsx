@@ -1,7 +1,33 @@
 import { Forma } from "forma-embedded-view-sdk/auto";
 import { useState, useEffect } from "preact/hooks";
+import type { PromptHistory } from "./preview";
+import type { Vec3 } from "forma-embedded-view-sdk/dist/internal/scene/design-tool";
 
-export function FloatPanelOpener() {
+function getFloatingPanelUrl(polygon: Vec3[], promptHistory: PromptHistory[]) {
+  const url = new URL(
+    'http://localhost:8081/floating-panel' 
+  )
+
+  // also add the polygon to the url to be used
+  if(polygon != null) {
+    const query = new URLSearchParams(url.search)
+    query.set("polygon", JSON.stringify(polygon))
+    query.set("promptHistory", JSON.stringify(promptHistory))
+    url.search = query.toString()
+  }
+
+  return url.toString()
+}
+
+export type FloatPanelOpenerProps = {
+  polygon: Vec3[],
+  promptHistory: PromptHistory[]
+};
+export function FloatPanelOpener(props: FloatPanelOpenerProps) {
+  const {
+    polygon,
+    promptHistory
+  } = props
   const [siteLimitFootprint, setSiteLimitFootprint] = useState<any>();
 
   useEffect(() => {
@@ -14,24 +40,8 @@ export function FloatPanelOpener() {
     fetchData();
   }, []);
 
-  function getFloatingPanelUrl(polygon:any) {
-    const url = new URL(
-      'http://localhost:8081/floating-panel' 
-    )
-
-    // also add the polygon to the url to be used
-    if (polygon != null) {
-      const query = new URLSearchParams(url.search)
-      query.set("polygon", JSON.stringify(polygon))
-      query.set("promtHistory", JSON.stringify({message: "Hello from the main app"}))
-      url.search = query.toString()
-    }
-
-    return url.toString()
-  }
-
   function openFloatingPanel() {
-    const url = getFloatingPanelUrl(siteLimitFootprint);
+    const url = getFloatingPanelUrl(polygon, promptHistory);
     void Forma.openFloatingPanel({
       embeddedViewId: "floating-panel",
       url,

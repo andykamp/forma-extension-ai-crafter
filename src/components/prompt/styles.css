@@ -1,0 +1,7 @@
+.prompt-textarea {
+  width: 100%;
+  resize: none;
+  border-color: var(--border-base);
+  border-radius: 2px;
+  position: relative;
+}

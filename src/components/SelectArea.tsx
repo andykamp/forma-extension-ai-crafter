@@ -1,16 +1,18 @@
 import { Forma } from "forma-embedded-view-sdk/auto"
+import type { Vec3 } from "forma-embedded-view-sdk/dist/internal/scene/design-tool"
 import { useCallback, useState } from "preact/hooks"
 
 export type SelectAreaProps = {
-  polygonId: string | null
-  onDrawnPolygon: (polygonId: string) => void
+  polygonId: string | null,
+  onDrawnPolygon: (polygonId: string) => void,
+  onPolygon(polygon: Vec3[]): void
 }
 export default function SelectArea(props: SelectAreaProps) {
   const {
     polygonId,
-    onDrawnPolygon
+    onDrawnPolygon,
+    onPolygon
   } = props
-  // const [polygonId, setPolygonId] = useState<string | null>(null) 
   const [isActive, setIsActive] = useState(false)
   const removeDrawnPolygon = useCallback(() => {
     if(!polygonId) return
@@ -23,6 +25,7 @@ export default function SelectArea(props: SelectAreaProps) {
     setIsActive(true)
     void Forma.designTool.getPolygon().then((polygon) => {
       if (!polygon) return
+      onPolygon(polygon)
       const coordinates = [polygon.map(point => [point.x, point.y])]
       Forma.render.geojson.add({
         geojson: {
@@ -50,7 +53,7 @@ export default function SelectArea(props: SelectAreaProps) {
   }, [ removeDrawnPolygon ])
 
   return (
-    <>
+    <div>
       <span>
         Select an area:
       </span>
@@ -64,6 +67,6 @@ export default function SelectArea(props: SelectAreaProps) {
       {/* <weave-button variant="solid" onClick={removeSelectedPolyogon}>
         Remove mesh
       </weave-button> */}
-    </>
+    </div>
   )
 }
