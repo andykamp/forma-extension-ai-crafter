@@ -21,7 +21,7 @@ export default function Sidebar() {
   const [prompt, setPrompt] = useState<string>("")
   const [polygon, setPolygon] = useState<Vec3[]>([])
   const [openAiVersion, setOpenAiVersion] = useState<number>(2)
-  const [ selectedPromptMessage, setSelectedPromptMessage ] = useState<ProjectMessage | null>(null)
+  const [selectedPromptMessage, setSelectedPromptMessage ] = useState<ProjectMessage | null>(null)
 
   const inputs = usePreviewInputs()
 
@@ -65,6 +65,7 @@ export default function Sidebar() {
       }
     ])
   }
+
   return (
     <>
       <div className={"sidebar-wrapper"}>
@@ -84,11 +85,25 @@ export default function Sidebar() {
             value={prompt}
             onPromptChange={(prompt) => {
               setPrompt(prompt)
-              addPromptHistory("User", prompt)
+              setPromptHistory([
+                ...promptHistory,
+                {
+                  role: "User",
+                  content: prompt
+                }
+              ])
+            }}
+            onPromptSubmit={(projectMessage) => { 
+              setSelectedPromptMessage(projectMessage)
+            }}
+            onPromptSubmitLoading={(loading) => { 
+              // handle loading
+            }}
+            onPromptSubmitError={(error) => { 
+              // handle error
             }}
           />
           <PromptHistoryList
-            projectId={inputs?.projectId || ""}
             onPromptMessageClick={(promptMessage) => {
               setSelectedPromptMessage(promptMessage)
             }}

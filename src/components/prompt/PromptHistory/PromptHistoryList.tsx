@@ -1,5 +1,6 @@
 import { useEffect, useState } from "preact/hooks";
 import "./promp.history.css"
+import { usePreviewInputs } from "../../preview/preview";
 
 export type ProjectMessage = {
   Id: number;
@@ -26,17 +27,19 @@ async function getProjectMessages(projectId: string) {
   return result as ProjectMessage[]
 }
 
-function useProjectMessages(projectId: string) {
+function useProjectMessages() {
   const [messages, setMessages] = useState<ProjectMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const inputs = usePreviewInputs()
 
   useEffect(() => {
+    if(!inputs?.projectId) return
     setIsLoading(true)
     setError(null)
     const fetchMessages = async () => {
       try {
-        const projectMessages = await getProjectMessages(projectId)
+        const projectMessages = await getProjectMessages(inputs.projectId)
         setMessages(projectMessages)
       } catch (err) {
         setError(err as Error)
@@ -46,23 +49,22 @@ function useProjectMessages(projectId: string) {
     }
 
     fetchMessages()
-  }, [projectId])
+  }, [ inputs?.projectId ])
 
   return { messages, isLoading, error }
 }
 
 export type PromptHistoryListProps = {
-  projectId: string,
   onPromptMessageClick?: (projectMessage: ProjectMessage) => void,
   selectedPromptMessage?: ProjectMessage | null
 }
 export default function PromptHistoryList(props: PromptHistoryListProps) {
   const {
-    projectId,
     onPromptMessageClick,
     selectedPromptMessage
   } = props
-  const { messages } = useProjectMessages(projectId)
+  const { messages } = useProjectMessages()
+  console.log(messages)
   return (
     <div
       className={"prompt-history"}

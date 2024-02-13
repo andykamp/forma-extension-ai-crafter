@@ -44,13 +44,14 @@ export function FloatPanelOpener(props: FloatPanelOpenerProps) {
   }, []);
 
   function openFloatingPanel() {
+    if(selectedPrompMessageId === 0) return
     const url = getFloatingPanelUrl(polygon, promptHistory, selectedPrompMessageId);
     void Forma.openFloatingPanel({
       embeddedViewId: "floating-panel",
       url,
       preferredSize: {
         width: 10000,
-        height: 10000,
+        height: 10000
       },
     })
   }
@@ -58,7 +59,10 @@ export function FloatPanelOpener(props: FloatPanelOpenerProps) {
   return (
     <>
       <div class="section">
-        <weave-button variant="solid" onClick={openFloatingPanel}>
+        <weave-button
+          variant="solid" onClick={openFloatingPanel}
+          disabled={selectedPrompMessageId === 0}
+        >
         Open terrain viewer 
       </weave-button>
       </div>
