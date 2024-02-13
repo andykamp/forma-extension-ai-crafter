@@ -6,4 +6,5 @@
   border-radius: 0px;
   padding-left: var(--container-padding);
   padding-right: var(--container-padding);
+  font: var(--high-medium-medium);
 }

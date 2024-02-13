@@ -48,7 +48,6 @@ async function submitPrompt(user: string) {
 function useSubmitPrompt() {
   const [result, setResult] = useState<ProjectMessage | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  console.log(isLoading)
   const [error, setError] = useState<Error | null>(null);
   const submit = useCallback(async (user: string) => {
     setIsLoading(true)
@@ -68,7 +67,6 @@ function useSubmitPrompt() {
 }
 
 export type PromptProps = {
-  value: string,
   onPromptChange: (prompt: string) => void,
   onPromptSubmit?: (projectMessage: ProjectMessage) => void,
   onPromptSubmitLoading?: (isLoading: boolean) => void,
@@ -76,18 +74,19 @@ export type PromptProps = {
 }
 export default function Prompt(props: PromptProps) {
   const {
-    value, // TODO: remove value
     onPromptChange,
     onPromptSubmit,
     onPromptSubmitLoading,
     onPromptSubmitError
   } = props
-  const [user, setUser] = useState < string | null>(null)
+  const [user, setUser] = useState <string | null>(null)
   const { submit, result, isLoading, error } = useSubmitPrompt()
 
   useEffect(() => {
     if(!user) return
-    submit(user)
+    submit(user).then(() => {
+      setUser(null)
+    })
     return () => {
       setUser(null)
     }
@@ -108,23 +107,18 @@ export default function Prompt(props: PromptProps) {
   }, [error])
 
   return (
-    <div>
-      <span>
-        Prompt:
-        {isLoading ? " Loading..." : null}
-      </span>
-      <textarea
-        className={"prompt-textarea"}
-        disabled={isLoading}
-        value={user || ""}
-        onChange={(e) => {
-          if(!e?.target) return
-          const value = (e.target as any).value
-          if(!value) return
-          onPromptChange(value)
-          setUser(value)
-        }}
-      />
-    </div>
+    <textarea
+      className={"prompt-textarea"}
+      placeholder={"Type your prompt here..."}
+      disabled={isLoading}
+      value={isLoading ? " Loading..." : user || ""}
+      onChange={(e) => {
+        if(!e?.target) return
+        const value = (e.target as any).value
+        if(!value) return
+        onPromptChange(value)
+        setUser(value)
+      }}
+    />
   )
 }
