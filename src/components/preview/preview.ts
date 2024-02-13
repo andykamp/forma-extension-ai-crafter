@@ -2,7 +2,7 @@ import { useEffect, useState } from "preact/hooks";
 
 export type PromptHistory = {
   role: string;
-  message: string;
+  content: string;
 }
 type PreviewInputs = {
   projectId: string;

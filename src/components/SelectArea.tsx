@@ -1,14 +1,17 @@
 import { Forma } from "forma-embedded-view-sdk/auto"
+import type { Vec3 } from "forma-embedded-view-sdk/dist/internal/scene/design-tool"
 import { useCallback, useState } from "preact/hooks"
 
 export type SelectAreaProps = {
-  polygonId: string | null
-  onDrawnPolygon: (polygonId: string) => void
+  polygonId: string | null,
+  onDrawnPolygon: (polygonId: string) => void,
+  onPolygon(polygon: Vec3[]): void
 }
 export default function SelectArea(props: SelectAreaProps) {
   const {
     polygonId,
-    onDrawnPolygon
+    onDrawnPolygon,
+    onPolygon
   } = props
   const [isActive, setIsActive] = useState(false)
   const removeDrawnPolygon = useCallback(() => {
@@ -22,6 +25,7 @@ export default function SelectArea(props: SelectAreaProps) {
     setIsActive(true)
     void Forma.designTool.getPolygon().then((polygon) => {
       if (!polygon) return
+      onPolygon(polygon)
       const coordinates = [polygon.map(point => [point.x, point.y])]
       Forma.render.geojson.add({
         geojson: {
