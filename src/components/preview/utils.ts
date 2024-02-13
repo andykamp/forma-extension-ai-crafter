@@ -1,3 +1,6 @@
+import { Forma } from "forma-embedded-view-sdk/auto"
+import { RefObject } from 'preact';
+import { useEffect, useState } from 'preact/hooks';
 import * as THREE from 'three';
 
 export function rotateAllObjectsAroundSceneAxis(scene: THREE.Scene, angle: number, axis: string) {
@@ -81,4 +84,108 @@ export async function addPolygon(
   return p
 }
 
+type useResizeProps = {
+  camera: THREE.PerspectiveCamera | undefined;
+  renderer: THREE.WebGLRenderer | undefined;
+  canvasRef: RefObject<HTMLCanvasElement>;
+}
 
+export function useResize(props: useResizeProps) {
+  const { camera, renderer, canvasRef } = props
+
+  useEffect(() => {
+    if (!canvasRef.current) return;
+    const canvas = canvasRef.current;
+
+    // Function to resize canvas
+    const resizeCanvas = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      // Update camera aspect ratio and projection matrix
+      if (camera) {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+      }
+
+      // Update renderer size
+      if (renderer) {
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      }
+
+      console.log('Resized to: ', window.innerWidth, window.innerHeight);
+    };
+
+    // Initial resize
+    resizeCanvas();
+
+    // Add event listener for window resize
+    window.addEventListener('resize', resizeCanvas);
+
+    // Your existing useEffect code here for setting up THREE.js...
+    // Ensure you have `camera` and `renderer` defined in your component's state
+    // so they can be accessed and updated here.
+
+    // Cleanup function to remove event listener
+    return () => window.removeEventListener('resize', resizeCanvas);
+  }, [camera, renderer]);
+
+}
+
+type UseInjectCodeProps = {
+  camera: THREE.PerspectiveCamera | undefined;
+  renderer: THREE.WebGLRenderer | undefined;
+  scene: THREE.Scene | undefined;
+  canvasRef: RefObject<HTMLCanvasElement>;
+  terrainMesh: THREE.Mesh | undefined;
+  code: string | undefined;
+  cb?: Function
+}
+
+export function useInjectCode(props: UseInjectCodeProps) {
+  const { camera, renderer, scene, canvasRef, terrainMesh, code, cb } = props
+  const [error, setError] = useState<string | undefined>();
+
+  useEffect(() => {
+    if (!camera || !renderer || !scene || !canvasRef.current || !terrainMesh || !code) return
+    const canvas = canvasRef.current;
+    // Modify the script to use the created canvas
+    // const modifiedCode = code.replace(/<script>|<\/script>/g, ''); //DUMMY_STR_CODE //code.replace(/document\.body\.appendChild\(renderer\.domElement\);/, '');
+    // @ts-ignore
+    const modifiedCode = code.match(/<script>([\s\S]*?)<\/script>/)[1]
+
+    console.log('___COOOOOOODEEEE___', modifiedCode);
+
+    try {
+      // Execute the script within the context of the containerRef
+      const scriptFunc = new Function(
+        'Forma',
+        'THREE',
+        'scene',
+        'container',
+        'canvas',
+        'camera',
+        'renderer',
+        modifiedCode
+      );
+      scriptFunc(
+        Forma,
+        THREE,
+        scene,
+        renderer,
+        canvas,
+        camera,
+        renderer,
+      );
+
+      cb?.()
+
+    } catch (error) {
+      setError('Error executing the script');
+      console.error('Error executing the script:', error);
+    }
+  }, [camera, renderer, scene, code, terrainMesh]);
+
+  return { error } as const
+
+}

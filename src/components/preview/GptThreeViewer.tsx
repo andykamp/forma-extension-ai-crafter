@@ -4,7 +4,11 @@ import * as THREE from 'three';
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
 import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter"
 import { DUMMY_STR_CODE } from "./constants"
-import { addPolygon } from "./utils"
+import { 
+  addPolygon, 
+  useResize,
+  useInjectCode
+} from "./utils"
 
 type GptThreeViewerInput = { code: string }
 
@@ -90,6 +94,7 @@ function GptThreeViewer(props: GptThreeViewerInput) {
     scene.add(mesh)
     setBuildingsMesh(mesh)
   }
+
   async function initPolygon() {
     const p = await addPolygon()
     scene.add(p)
@@ -227,86 +232,11 @@ function GptThreeViewer(props: GptThreeViewerInput) {
   }, [])
 
   // resizer
+  useResize({ camera, renderer, canvasRef })
 
 
-  useEffect(() => {
-    if (!canvasRef.current) return;
-    const canvas = canvasRef.current;
-
-    // Function to resize canvas
-    const resizeCanvas = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-
-      // Update camera aspect ratio and projection matrix
-      if (camera) {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-      }
-
-      // Update renderer size
-      if (renderer) {
-        renderer.setSize(window.innerWidth, window.innerHeight);
-      }
-
-      console.log('Resized to: ', window.innerWidth, window.innerHeight);
-    };
-
-    // Initial resize
-    resizeCanvas();
-
-    // Add event listener for window resize
-    window.addEventListener('resize', resizeCanvas);
-
-    // Your existing useEffect code here for setting up THREE.js...
-    // Ensure you have `camera` and `renderer` defined in your component's state
-    // so they can be accessed and updated here.
-
-    // Cleanup function to remove event listener
-    return () => window.removeEventListener('resize', resizeCanvas);
-  }, [camera, renderer]);
-
-
-  useEffect(() => {
-    if (!camera || !renderer || !scene || !canvasRef.current || !terrainMesh || !code) return
-    const canvas = canvasRef.current;
-    // Modify the script to use the created canvas
-    // const modifiedCode = code.replace(/<script>|<\/script>/g, ''); //DUMMY_STR_CODE //code.replace(/document\.body\.appendChild\(renderer\.domElement\);/, '');
-    // @ts-ignore
-    const modifiedCode = code.match(/<script>([\s\S]*?)<\/script>/)[1] 
-
-    console.log('___COOOOOOODEEEE___',modifiedCode );
-
-    try {
-      // Execute the script within the context of the containerRef
-      const scriptFunc = new Function(
-        'Forma',
-        'THREE',
-        'scene',
-        'container',
-        'canvas',
-        'camera',
-        'renderer',
-        modifiedCode
-      );
-      scriptFunc(
-        Forma,
-        THREE,
-        scene,
-        renderer,
-        canvas,
-        camera,
-        renderer,
-      );
-
-      // align z axis
-      alignElevatoin()
-
-    } catch (error) {
-      console.error('Error executing the script:', error);
-    }
-
-  }, [camera, renderer, scene, code, terrainMesh]);
+  // code execution
+  useInjectCode({ camera, renderer, scene, canvasRef, terrainMesh, code, cb:alignElevatoin })
 
   function togglePolygon() {
     if (polygonMesh) {
@@ -334,7 +264,6 @@ function GptThreeViewer(props: GptThreeViewerInput) {
     if (buildingsMesh) {
       scene.remove(buildingsMesh)
     }
-    // rotateAllObjectsAroundSceneAxis(scene, -Math.PI / 2, 'x');
 
     const glb: ArrayBuffer = await new Promise((resolve, reject) => {
       new GLTFExporter().parse(
@@ -347,7 +276,13 @@ function GptThreeViewer(props: GptThreeViewerInput) {
       )
     })
     await Forma.render.glb.add({ glb })
-    // rotateAllObjectsAroundSceneAxis(scene, -Math.PI / 2, 'x');
+
+    if (terrainMesh) {
+      scene.add(terrainMesh)
+    }
+    if (buildingsMesh) {
+      scene.add(buildingsMesh)
+    }
   }
 
 
