@@ -4,11 +4,14 @@ import * as THREE from 'three';
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
 import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter"
 import { DUMMY_STR_CODE } from "./constants"
-import { addPolygon, rotateAllObjectsAroundSceneAxis } from "./utils"
+import { addPolygon } from "./utils"
 
 type GptThreeViewerInput = { code: string }
 
+const isRaycastHeperEnabled = true
 let renderIteration = 0
+const TERRAIN_ID = 'terrain'
+const BUILDINGS_ID = 'buildings'
 
 function GptThreeViewer(props: GptThreeViewerInput) {
   const { code } = props;
@@ -45,6 +48,10 @@ function GptThreeViewer(props: GptThreeViewerInput) {
     });
 
     const mesh = new THREE.Mesh(geometry, material)
+    mesh.rotation.x = -Math.PI / 2
+    mesh.userData = {
+      id: TERRAIN_ID
+    }
 
     if (terrainMesh != null) {
       scene.remove(terrainMesh)
@@ -72,6 +79,10 @@ function GptThreeViewer(props: GptThreeViewerInput) {
     });
 
     const mesh = new THREE.Mesh(geometry, material)
+    mesh.rotation.x = -Math.PI / 2
+    mesh.userData = {
+      id: BUILDINGS_ID
+    }
 
     if (terrainMesh != null) {
       scene.remove(terrainMesh)
@@ -84,6 +95,71 @@ function GptThreeViewer(props: GptThreeViewerInput) {
     scene.add(p)
     setPolygonMesh(p)
 
+  }
+
+  async function alignElevatoin() {
+    if (!terrainMesh) return
+
+    function addRaycastHelper(
+      scene: THREE.Scene,
+      x: number,
+      y: number,
+      z: number,
+    ) {
+      const material = new THREE.LineBasicMaterial({
+        color: 0x0000ff
+      });
+
+      const offset = 1000
+      const points = [];
+      points.push(new THREE.Vector3(x, y+offset, z));
+      points.push(new THREE.Vector3(x, y+offset, z));
+
+      const geometry = new THREE.BufferGeometry().setFromPoints(points);
+
+      const line = new THREE.Line(geometry, material);
+
+      scene.add(line);
+    }
+
+
+
+    function getThreejsElevation(x: number, z: number, surfaceMesh: THREE.Mesh) {
+
+      const someHighValueAboveSurface = 1000
+      const raycaster = new THREE.Raycaster();
+      const downVector = new THREE.Vector3(0, -1, 0); // Direction: down
+      const originPoint = new THREE.Vector3(
+        x,
+        someHighValueAboveSurface,
+        z,
+      ); // Start the ray above the surface
+
+      raycaster.set(originPoint, downVector);
+
+      const intersects = raycaster.intersectObject(surfaceMesh, true);
+
+      if (intersects.length > 0) {
+        const intersectionPoint = intersects[0].point;
+        return intersectionPoint.y
+      } else {
+        console.log("No intersection found. Ensure the point is above the surface and within bounds.");
+        return null
+      }
+    }
+
+    scene.traverse(async (child) => {
+      const userData = child.userData
+      if (userData.id === TERRAIN_ID || userData.id === BUILDINGS_ID) return
+      const { x, y, z } = child.position
+      // const elevation = await Forma.terrain.getElevationAt({ x, y: z })
+      const elevation = getThreejsElevation(x, z, terrainMesh) || 0
+      if (isRaycastHeperEnabled) {
+        addRaycastHelper(scene, x, y, z)
+      }
+
+      child.position.y += elevation
+    })
   }
 
   // render loop
@@ -133,8 +209,8 @@ function GptThreeViewer(props: GptThreeViewerInput) {
       0.1,
       10000,
     )
-    newCamera.up.set(0, 0, 1) // @note: SETS THE UP DIRECTION TO Z
-    newCamera.position.set(-100, -200, 100)
+    // newCamera.up.set(0, 0, 1) // @note: SETS THE UP DIRECTION TO Z
+    newCamera.position.set(100, 200, 100)
     setCamera(newCamera)
     setControls(new OrbitControls(newCamera, canvas))
 
@@ -146,7 +222,7 @@ function GptThreeViewer(props: GptThreeViewerInput) {
     scene.add(l)
 
     initTerrain()
-    // initBuidings()
+    initBuidings()
     initPolygon()
   }, [])
 
@@ -192,6 +268,7 @@ function GptThreeViewer(props: GptThreeViewerInput) {
 
 
   useEffect(() => {
+    if (!camera || !renderer || !scene || !canvasRef.current || !terrainMesh || !code) return
     const canvas = canvasRef.current;
 
     // Modify the script to use the created canvas
@@ -205,6 +282,8 @@ function GptThreeViewer(props: GptThreeViewerInput) {
         'scene',
         'container',
         'canvas',
+        'camera',
+        'renderer',
         modifiedCode
       );
       scriptFunc(
@@ -212,14 +291,19 @@ function GptThreeViewer(props: GptThreeViewerInput) {
         THREE,
         scene,
         renderer,
-        canvas
+        canvas,
+        camera,
+        renderer,
       );
+
+      // align z axis
+      alignElevatoin()
 
     } catch (error) {
       console.error('Error executing the script:', error);
     }
 
-  }, [code]);
+  }, [camera, renderer, scene, code, terrainMesh]);
 
   function togglePolygon() {
     if (polygonMesh) {
@@ -241,12 +325,12 @@ function GptThreeViewer(props: GptThreeViewerInput) {
 
   async function addToForma() {
 
-    // if (terrainMesh) {
-    //   scene.remove(terrainMesh)
-    // }
-    // if (buildingsMesh) {
-    //   scene.remove(buildingsMesh)
-    // }
+    if (terrainMesh) {
+      scene.remove(terrainMesh)
+    }
+    if (buildingsMesh) {
+      scene.remove(buildingsMesh)
+    }
     // rotateAllObjectsAroundSceneAxis(scene, -Math.PI / 2, 'x');
 
     const glb: ArrayBuffer = await new Promise((resolve, reject) => {
