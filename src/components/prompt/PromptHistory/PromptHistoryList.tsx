@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "preact/hooks";
+import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import "./promp.history.css"
 import { usePreviewInputs } from "../../preview/preview";
 
@@ -65,12 +65,20 @@ export default function PromptHistoryList(props: PromptHistoryListProps) {
     selectedPromptMessage
   } = props
   const { fetchMessages, messages } = useProjectMessages()
+  const lastItemRef = useRef<HTMLLIElement | null>(null)
 
   useEffect(() => {
     if(!selectedPromptMessage) return
     console.log("rerender maybe?")
     fetchMessages()
   }, [selectedPromptMessage, fetchMessages])
+
+  useEffect(() => {
+    if(!messages) return
+    console.log("scrolling")
+    lastItemRef.current?.scrollIntoView({ behavior: "smooth" })
+  }, [messages])
+
   return (
     <div
       className={"prompt-history"}
@@ -84,10 +92,11 @@ export default function PromptHistoryList(props: PromptHistoryListProps) {
         className="prompt-history-list"
       >
         {messages.length === 0 ? <li>No messages</li> : null}
-        {messages.map((message) => {
+        {messages.map((message, index) => {
             return (
               <li
                 key={message.Id}
+                ref={index === messages.length - 1 ? lastItemRef : null}
                 className={selectedPromptMessage?.Id === message.Id
                   ? "prompt-history-item prompt-history-item-selected"
                   : "prompt-history-item"
