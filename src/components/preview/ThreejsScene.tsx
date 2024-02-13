@@ -25,16 +25,16 @@ import {
 } from "three"
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
 import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter"
-import { addRaycastHelper, getThreejsElevation, repair } from "../lib/utils/terrain.utils"
-import { createHouse, createTree } from "../lib/utils/mesh.utils"
-import buildingApi, { EXAMPLE_BUILDING } from "../lib/api/building.api"
-import { createTreeInPolygon } from "../lib/api/vegetation.api"
+import { addRaycastHelper, getThreejsElevation, repair } from "../../lib/utils/terrain.utils"
+import { createHouse, createTree } from "../../lib/utils/mesh.utils"
+import buildingApi, { EXAMPLE_BUILDING } from "../../lib/api/building.api"
+import { createTreeInPolygon } from "../../lib/api/vegetation.api"
 import {
   isPointInPolygon,
   getBoundingBox,
   getRandomPointInBoundingBox,
   getSquareAroundPoint,
-} from '../lib/utils/geometry.utils';
+} from '../../lib/utils/geometry.utils';
 // import sunApi from "../lib/api/sun.api"
 
 let renderIteration = 0

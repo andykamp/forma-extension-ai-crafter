@@ -1,7 +1,7 @@
 import { h, Component } from 'preact';
 import Router from 'preact-router';
 import App from "./app.tsx";
-import FloatingPanel from './components/FloatingPanel';
+import FloatingPanel from './components/preview/FloatingPanel';
 
 export default class Routes extends Component {
   render() {
