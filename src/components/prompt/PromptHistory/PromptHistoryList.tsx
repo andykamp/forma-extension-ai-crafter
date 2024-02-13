@@ -1,4 +1,4 @@
-import { useEffect, useState } from "preact/hooks";
+import { useCallback, useEffect, useState } from "preact/hooks";
 import "./promp.history.css"
 import { usePreviewInputs } from "../../preview/preview";
 
@@ -32,26 +32,27 @@ function useProjectMessages() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const inputs = usePreviewInputs()
-
+  const fetchMessages = useCallback(async () => {
+    if(!inputs?.projectId) return
+    try {
+      const projectMessages = await getProjectMessages(inputs.projectId)
+      setMessages(projectMessages)
+    } catch (err) {
+      setError(err as Error)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [ inputs?.projectId ])
+  
   useEffect(() => {
     if(!inputs?.projectId) return
     setIsLoading(true)
     setError(null)
-    const fetchMessages = async () => {
-      try {
-        const projectMessages = await getProjectMessages(inputs.projectId)
-        setMessages(projectMessages)
-      } catch (err) {
-        setError(err as Error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
 
     fetchMessages()
   }, [ inputs?.projectId ])
 
-  return { messages, isLoading, error }
+  return { fetchMessages, messages, isLoading, error }
 }
 
 export type PromptHistoryListProps = {
@@ -63,8 +64,13 @@ export default function PromptHistoryList(props: PromptHistoryListProps) {
     onPromptMessageClick,
     selectedPromptMessage
   } = props
-  const { messages } = useProjectMessages()
-  console.log(messages)
+  const { fetchMessages, messages } = useProjectMessages()
+
+  useEffect(() => {
+    if(!selectedPromptMessage) return
+    console.log("rerender maybe?")
+    fetchMessages()
+  }, [selectedPromptMessage, fetchMessages])
   return (
     <div
       className={"prompt-history"}
@@ -77,10 +83,11 @@ export default function PromptHistoryList(props: PromptHistoryListProps) {
       <ul
         className="prompt-history-list"
       >
-        {
-          messages.map((message) => {
+        {messages.length === 0 ? <li>No messages</li> : null}
+        {messages.map((message) => {
             return (
               <li
+                key={message.Id}
                 className={selectedPromptMessage?.Id === message.Id
                   ? "prompt-history-item prompt-history-item-selected"
                   : "prompt-history-item"
