@@ -1,22 +1,47 @@
 import { FloatPanelOpener } from "./preview/FloatPanelOpener";
-import DaylightSection from "./daylight/DaylightSection";
-import TestMeshSection from "./_testMesh/TestMeshSection";
-import TestInfoSection from "./_testInfo/TestInfoSection";
 import { useState } from "preact/hooks";
 import SelectArea from "./SelectArea";
+import Prompt from "./prompt/Prompt";
+import type { PromptHistory } from "./preview/preview";
+import "./styles.css";
 
 export default function Sidebar() {
-  const [polygonId, setPolygonId] = useState<string | null>(null) 
+  const [polygonId, setPolygonId] = useState<string | null>(null)
+  const [promptHistory, setPromptHistory] = useState<PromptHistory[]>([])
+  const [prompt, setPrompt] = useState<string>("")
+
+  const addPromptHistory = (role: string, message: string) => {
+    setPromptHistory([
+      ...promptHistory,
+      {
+        role,
+        message
+      }
+    ])
+  }
   return (
     <>
-      <SelectArea
+      <div className={"sidebar-wrapper"}>
+        <SelectArea
+          polygonId={polygonId}
+          onDrawnPolygon={setPolygonId}
+        />
+        <Prompt
+          value={prompt}
+          // onPromptChange={setPrompt}
+          onPromptChange={(prompt) => {
+            setPrompt(prompt)
+            addPromptHistory("User", prompt)
+           }}
+        />
+      </div>
+      <FloatPanelOpener
         polygonId={polygonId}
-        onDrawnPolygon={setPolygonId}
+        promptHistory={promptHistory}
       />
       {/* <DaylightSection/>
       <TestMeshSection/>
-      <TestInfoSection/>
-      <FloatPanelOpener/> */}
+      <TestInfoSection/> */}
     </>
   );
 }

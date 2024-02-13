@@ -1,9 +1,13 @@
 import { useEffect, useState } from "preact/hooks";
 
+export type PromptHistory = {
+  role: string;
+  message: string;
+}
 type PreviewInputs = {
   projectId: string;
   polygon: [number, number][];
-  promtHistory: any;
+  promptHistory: PromptHistory;
 }
 
 function safeParse(str: string) {
@@ -22,7 +26,7 @@ function safeParse(str: string) {
 
 export function usePreviewInputs() {
   const [inputs, setInputs] = useState<PreviewInputs>();
-
+  console.log('inputs', inputs);
   useEffect(() => {
 
     // Create a URLSearchParams object from window.location.search
@@ -30,7 +34,7 @@ export function usePreviewInputs() {
     console.log('queryParams', queryParams);
     const i: PreviewInputs = {
       projectId: queryParams.get('projectId') || '',
-      promtHistory: safeParse(queryParams.get('promtHistory') || ''),
+      promptHistory: safeParse(queryParams.get('promptHistory') || ''),
       polygon: safeParse(queryParams.get('polygon') || ''),
     }
     setInputs(i);

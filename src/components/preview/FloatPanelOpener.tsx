@@ -1,7 +1,15 @@
 import { Forma } from "forma-embedded-view-sdk/auto";
 import { useState, useEffect } from "preact/hooks";
+import type { PromptHistory } from "./preview";
 
-export function FloatPanelOpener() {
+export type FloatPanelOpenerProps = {
+  polygonId: string | null,
+  promptHistory: PromptHistory[]
+};
+export function FloatPanelOpener(props: FloatPanelOpenerProps) {
+  const {
+    promptHistory
+  } = props
   const [siteLimitFootprint, setSiteLimitFootprint] = useState<any>();
 
   useEffect(() => {
@@ -23,7 +31,7 @@ export function FloatPanelOpener() {
     if (polygon != null) {
       const query = new URLSearchParams(url.search)
       query.set("polygon", JSON.stringify(polygon))
-      query.set("promtHistory", JSON.stringify({message: "Hello from the main app"}))
+      query.set("promptHistory", JSON.stringify(promptHistory))
       url.search = query.toString()
     }
 

@@ -10,7 +10,6 @@ export default function SelectArea(props: SelectAreaProps) {
     polygonId,
     onDrawnPolygon
   } = props
-  // const [polygonId, setPolygonId] = useState<string | null>(null) 
   const [isActive, setIsActive] = useState(false)
   const removeDrawnPolygon = useCallback(() => {
     if(!polygonId) return
@@ -50,7 +49,7 @@ export default function SelectArea(props: SelectAreaProps) {
   }, [ removeDrawnPolygon ])
 
   return (
-    <>
+    <div>
       <span>
         Select an area:
       </span>
@@ -64,6 +63,6 @@ export default function SelectArea(props: SelectAreaProps) {
       {/* <weave-button variant="solid" onClick={removeSelectedPolyogon}>
         Remove mesh
       </weave-button> */}
-    </>
+    </div>
   )
 }
