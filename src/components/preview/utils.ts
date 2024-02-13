@@ -189,3 +189,88 @@ export function useInjectCode(props: UseInjectCodeProps) {
   return { error } as const
 
 }
+
+
+// --------------------------------------
+// Elevation helpers 
+// --------------------------------------
+
+
+function addRaycastHelper(
+  scene: THREE.Scene,
+  x: number,
+  y: number,
+  z: number,
+) {
+  const material = new THREE.LineBasicMaterial({
+    color: 0x0000ff
+  });
+
+  const offset = 1000
+  const points = [];
+  points.push(new THREE.Vector3(x, y + offset, z));
+  points.push(new THREE.Vector3(x, y + offset, z));
+
+  const geometry = new THREE.BufferGeometry().setFromPoints(points);
+
+  const line = new THREE.Line(geometry, material);
+
+  scene.add(line);
+}
+
+
+function getThreejsElevation(x: number, z: number, surfaceMesh: THREE.Mesh) {
+
+  const someHighValueAboveSurface = 1000
+  const raycaster = new THREE.Raycaster();
+  const downVector = new THREE.Vector3(0, -1, 0); // Direction: down
+  const originPoint = new THREE.Vector3(
+    x,
+    someHighValueAboveSurface,
+    z,
+  ); // Start the ray above the surface
+
+  raycaster.set(originPoint, downVector);
+
+  const intersects = raycaster.intersectObject(surfaceMesh, true);
+
+  if (intersects.length > 0) {
+    const intersectionPoint = intersects[0].point;
+    return intersectionPoint.y
+  } else {
+    console.log("No intersection found. Ensure the point is above the surface and within bounds.");
+    return null
+  }
+}
+
+type AlignSceneChildrenToElevationProps = {
+  scene: THREE.Scene,
+  terrainMesh: THREE.Mesh | undefined
+  blacklistedIds?: string[],
+  isRaycastHeperEnabled: boolean,
+}
+
+export async function alignSceneChildrenToElevation(props: AlignSceneChildrenToElevationProps) {
+  const { 
+    scene, 
+    terrainMesh,
+    isRaycastHeperEnabled,
+    blacklistedIds = []
+  } = props
+
+  if (!terrainMesh) return
+
+  scene.traverse(async (child) => {
+    const userData = child.userData
+    if (blacklistedIds.includes(userData.id)) return
+    const { x, y, z } = child.position
+    // const elevation = await Forma.terrain.getElevationAt({ x, y: z })
+    const elevation = getThreejsElevation(x, z, terrainMesh) || 0
+    if (isRaycastHeperEnabled) {
+      addRaycastHelper(scene, x, y, z)
+    }
+
+    child.position.y += elevation
+  })
+}
+
