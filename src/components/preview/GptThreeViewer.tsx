@@ -210,7 +210,7 @@ function GptThreeViewer(props: GptThreeViewerInput) {
       10000,
     )
     // newCamera.up.set(0, 0, 1) // @note: SETS THE UP DIRECTION TO Z
-    newCamera.position.set(100, 200, 100)
+    newCamera.position.set(200, 100, 400)
     setCamera(newCamera)
     setControls(new OrbitControls(newCamera, canvas))
 

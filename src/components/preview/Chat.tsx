@@ -1,4 +1,3 @@
-import { Forma } from "forma-embedded-view-sdk/auto"
 import type { PromptHistory } from "./preview"
 
 const promptHistory: PromptHistory[] = []
@@ -12,7 +11,6 @@ export default function Chat() {
   if(getPromptHistory) {
     promptHistory.push(JSON.parse(getPromptHistory))
   }
-
 
   return (
     <>

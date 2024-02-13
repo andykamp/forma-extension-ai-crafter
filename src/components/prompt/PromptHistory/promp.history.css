@@ -1,0 +1,33 @@
+.prompt-history {
+  width: 100%;
+}
+
+.prompt-history-title {
+  font: var(--medium-medium);
+  color: var(--text-muted);
+}
+
+ul.prompt-history-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  border-top: 1px solid var(--border-base);
+  border-bottom: 1px solid var(--border-base);
+}
+li.prompt-history-item {
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--border-base);
+  cursor: pointer;
+  font: var(--small-regular);
+}
+li.prompt-history-item:hover {
+  background-color: var(--bg-base);
+}
+li.prompt-history-item:last-child {
+  border-bottom: none;
+}
+li.prompt-history-item.prompt-history-item-selected {
+  background-color: var(--background-on-default);
+}
