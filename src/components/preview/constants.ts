@@ -56,19 +56,19 @@ camera.lookAt(scene.position);
 let angle = 0;
 const radius = 800;
 
-function animate() {
-    requestAnimationFrame(animate);
+// function animate() {
+//     requestAnimationFrame(animate);
 
-    angle += 0.001;
+//     angle += 0.001;
 
-    camera.position.x = radius * Math.sin(angle);
-    camera.position.z = radius * Math.cos(angle);
-    camera.lookAt(new THREE.Vector3(0, 50, 0));
+//     camera.position.x = radius * Math.sin(angle);
+//     camera.position.z = radius * Math.cos(angle);
+//     camera.lookAt(new THREE.Vector3(0, 50, 0));
 
-    renderer.render(scene, camera);
-}
+//     renderer.render(scene, camera);
+// }
 
-animate();
+// animate();
 
 
 `

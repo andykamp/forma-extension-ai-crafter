@@ -4,6 +4,7 @@ import GptThreeViewer from "./GptThreeViewer";
 import PromptHistoryList, { type ProjectMessage } from "../prompt/PromptHistory/PromptHistoryList";
 export default function FloatPanel() {
   const [ selectedPromptMessage, setSelectedPromptMessage ] = useState<ProjectMessage | null>(null)
+  console.log('selectedPromptMessage',selectedPromptMessage );
 
   const inputs = usePreviewInputs();
 

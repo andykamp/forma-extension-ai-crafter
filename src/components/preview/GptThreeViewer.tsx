@@ -268,9 +268,9 @@ function GptThreeViewer(props: GptThreeViewerInput) {
 
 
   useEffect(() => {
-    if (!camera || !renderer || !scene || !canvasRef.current || !terrainMesh || !code) return
+    console.log('code', code);
+    if (!camera || !renderer || !scene || !canvasRef.current || !terrainMesh ) return
     const canvas = canvasRef.current;
-
     // Modify the script to use the created canvas
     const modifiedCode = DUMMY_STR_CODE //code.replace(/document\.body\.appendChild\(renderer\.domElement\);/, '');
 
