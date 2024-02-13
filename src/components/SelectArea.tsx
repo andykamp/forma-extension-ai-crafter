@@ -1,13 +1,21 @@
 import { Forma } from "forma-embedded-view-sdk/auto"
 import { useCallback, useState } from "preact/hooks"
 
-export default function SelectArea() {
-  const [polygonId, setPolygonId] = useState<string | null>(null) 
+export type SelectAreaProps = {
+  polygonId: string | null
+  onDrawnPolygon: (polygonId: string) => void
+}
+export default function SelectArea(props: SelectAreaProps) {
+  const {
+    polygonId,
+    onDrawnPolygon
+  } = props
+  // const [polygonId, setPolygonId] = useState<string | null>(null) 
   const [isActive, setIsActive] = useState(false)
   const removeDrawnPolygon = useCallback(() => {
     if(!polygonId) return
     Forma.render.geojson.remove({ id: polygonId })
-    setPolygonId("")
+    onDrawnPolygon("")
   }, [polygonId])
 
   const selectPolygon = useCallback(() => {
@@ -35,7 +43,7 @@ export default function SelectArea() {
           }]
         }
       }).then(({ id }) => {
-        setPolygonId(id)
+        onDrawnPolygon(id)
         setIsActive(false)
       })
     })
