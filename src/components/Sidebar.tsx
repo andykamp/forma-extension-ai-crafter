@@ -31,7 +31,7 @@ export default function Sidebar() {
 
     const body = {
       projectId: projectId,
-      deploymentCode: 1,
+      deploymentCode: openAiVersion,
       user: content
     }
 
