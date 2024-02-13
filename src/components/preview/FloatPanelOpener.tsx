@@ -16,13 +16,14 @@ export function FloatPanelOpener() {
 
   function getFloatingPanelUrl(polygon:any) {
     const url = new URL(
-      'http://localhost:8081/floating-panel' // @todo: add the float-panel url after added route
+      'http://localhost:8081/floating-panel' 
     )
 
     // also add the polygon to the url to be used
     if (polygon != null) {
       const query = new URLSearchParams(url.search)
       query.set("polygon", JSON.stringify(polygon))
+      query.set("promtHistory", JSON.stringify({message: "Hello from the main app"}))
       url.search = query.toString()
     }
 
