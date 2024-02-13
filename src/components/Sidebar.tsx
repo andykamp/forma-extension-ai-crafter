@@ -13,7 +13,7 @@ export default function Sidebar() {
   const [promptHistory, setPromptHistory] = useState<PromptHistory[]>([])
   const [prompt, setPrompt] = useState<string>("")
   const [polygon, setPolygon] = useState<Vec3[]>([])
-  const [openAiVersion, setOpenAiVersion] = useState<string>("gpt-3")
+  const [openAiVersion, setOpenAiVersion] = useState<number>(2)
   const [ selectedPromptMessage, setSelectedPromptMessage ] = useState<ProjectMessage | null>(null)
   
   const inputs = usePreviewInputs()
@@ -36,7 +36,12 @@ export default function Sidebar() {
           onPolygon={setPolygon}
         />
         <div>
-          <SelectOpenAiVersion />
+          <SelectOpenAiVersion
+            value={openAiVersion}
+            onChange={(version) => {
+              setOpenAiVersion(version)
+            }}
+          />
           <Prompt
             value={prompt}
             onPromptChange={(prompt) => {
@@ -56,6 +61,7 @@ export default function Sidebar() {
       <FloatPanelOpener
         polygon={polygon}
         promptHistory={promptHistory}
+        selectedPrompMessageId={selectedPromptMessage?.Id || 0}
       />
       {/* <DaylightSection/>
       <TestMeshSection/>

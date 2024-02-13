@@ -8,24 +8,41 @@ const openAiVersions = [
     name: "GPT-4.0"
   }
 ]
+export type SelectOpenAiVersionProps = {
+  value: number,
+  onChange: (openAiVersion: number) => void
+}
 
-export default function SelectOpenAiVersion() {
+export default function SelectOpenAiVersion(props: SelectOpenAiVersionProps) {
+  const {
+    value,
+    onChange
+  } = props
   return (
     <div>
       <label htmlFor="openai-version">
-        OpenAI Version
+        OpenAI Version:
       </label>
-      <select
-        id="openai-version"
-        onChange={(e) => { console.log(e)}}
+      <weave-select
+        value={value}
+        onChange={(event) => {
+          const value = (event as CustomEvent).detail.value
+          if(!value) return
+          onChange(+value)
+        }}
       >
+        {/* // Luxon uses 1-indexed months, so we need to add 1 to the value */}
         {openAiVersions.map((version) => (
-          <option key={version.id} value={version.name}>
+          // <option key={version.id} value={version.name}>
+          //   {version.name}
+          // </option>
+          <weave-select-option
+            key={version.id}
+            value={version.id}>
             {version.name}
-          </option>
-        
+          </weave-select-option>
         ))}
-      </select>
+      </weave-select>
     </div>
   )
 }

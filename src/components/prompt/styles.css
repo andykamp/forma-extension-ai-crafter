@@ -1,7 +1,9 @@
 .prompt-textarea {
   width: 100%;
   resize: none;
-  border-color: var(--border-base);
-  border-radius: 2px;
-  position: relative;
+  /* border-color: var(--input-box-default-bordercolor); */
+  border-color: rgb(230 230 230);
+  border-radius: 0px;
+  padding-left: var(--container-padding);
+  padding-right: var(--container-padding);
 }
