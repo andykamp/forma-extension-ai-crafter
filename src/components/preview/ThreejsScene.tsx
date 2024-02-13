@@ -151,9 +151,10 @@ function FloatingPanel() {
       if (isRaycastHeperEnabled) {
         addRaycastHelper(scene, coords[i][0], coords[i][1], elevation)
       }
+      // @note: uncomment to add trees and houses on polygon edges
       // addTree(scene, coords[i][0], coords[i][1], elevation)
       // addHouse(scene, coords[i][0], coords[i][1], elevation)
-      addHouseWithBuldingApi(scene, coords[i][0], coords[i][1], elevation)
+      // addHouseWithBuldingApi(scene, coords[i][0], coords[i][1], elevation)
 
 
       // Update the point's z value with the obtained elevation

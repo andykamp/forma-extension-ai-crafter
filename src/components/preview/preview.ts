@@ -3,7 +3,7 @@ import { useEffect, useState } from "preact/hooks";
 type PreviewInputs = {
   projectId: string;
   polygon: [number, number][];
-  promtHistory: any;
+  promptHistory: any;
 }
 
 function safeParse(str: string) {
@@ -30,7 +30,7 @@ export function usePreviewInputs() {
     console.log('queryParams', queryParams);
     const i: PreviewInputs = {
       projectId: queryParams.get('projectId') || '',
-      promtHistory: safeParse(queryParams.get('promtHistory') || ''),
+      promptHistory: safeParse(queryParams.get('promptHistory') || ''),
       polygon: safeParse(queryParams.get('polygon') || ''),
     }
     setInputs(i);
@@ -40,4 +40,9 @@ export function usePreviewInputs() {
 
 
   return inputs
+}
+
+
+export function parseChatResult(){
+
 }

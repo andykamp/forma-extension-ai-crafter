@@ -17,6 +17,7 @@ export default function Sidebar() {
       <TestMeshSection/>
       <TestInfoSection/>
       <FloatPanelOpener/> */}
+      <FloatPanelOpener/> 
     </>
   );
 }
