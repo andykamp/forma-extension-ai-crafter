@@ -16,49 +16,6 @@ export default function Sidebar() {
   const [openAiVersion, setOpenAiVersion] = useState<number>(2)
   const [selectedPromptMessage, setSelectedPromptMessage ] = useState<ProjectMessage | null>(null)
 
-  const inputs = usePreviewInputs()
-
-  const addPromptHistory = async (role: string, content: string) => {
-    const queryParams = new URLSearchParams(window.location.search);
-    const projectId = queryParams.get('projectId')
-
-    const body = {
-      projectId: projectId,
-      deploymentCode: openAiVersion,
-      user: content
-    }
-
-    const queryString = objectToQueryString(body)
-    const url = `http://localhost:8080/submitPrompt?${queryString}`
-    try {
-      const result = await fetch(url, {
-        method: 'GET',
-      })
-
-      if (!result.ok) {
-        throw new Error('Network response was not ok');
-      }
-
-      const res = await result.json();
-      console.log('dataaaaaaaaaaaa', res);
-      setSelectedPromptMessage(res.upsertResponse)
-
-      // setResult(lastMsg);
-    } catch (error) {
-      console.error('Error:', error);
-    }
-
-
-
-    setPromptHistory([
-      ...promptHistory,
-      {
-        role,
-        content
-      }
-    ])
-  }
-
   return (
     <>
       <div className={"sidebar-wrapper"}>
