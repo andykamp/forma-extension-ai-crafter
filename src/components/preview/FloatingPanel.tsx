@@ -1,15 +1,63 @@
-import { useState } from "preact/hooks"
-import { usePreviewInputs } from "./preview";
+import { useState, useCallback, useEffect } from "preact/hooks"
 import GptThreeViewer from "./GptThreeViewer";
-import PromptHistoryList, { type ProjectMessage } from "../prompt/PromptHistory/PromptHistoryList";
+import type { ProjectMessage } from "../../lib/types";
+
+async function getMessageById(messageId: string) { 
+  const result = await fetch(`http://localhost:8080/getMessage?id=${messageId}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  }).then((response) => response.json())
+  return result as ProjectMessage
+}
+
+function useGetMessageById(messageId: string | null) {
+  const [message, setMessage] = useState<ProjectMessage | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+  const fetchMessage = useCallback(async (messageId: string) => {
+    setIsLoading(true)
+    try {
+      const projectMessage = await getMessageById(messageId)
+      setMessage(projectMessage)
+    } catch (err) {
+      setError(err as Error)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
+  console.log(messageId)
+  useEffect(() => {
+    if(!messageId) return
+    fetchMessage(messageId)
+  }, [ messageId, fetchMessage ])
+  return { message, isLoading, error }
+}
+
 export default function FloatPanel() {
   const [ selectedPromptMessage, setSelectedPromptMessage ] = useState<ProjectMessage | null>(null)
-  console.log('selectedPromptMessage',selectedPromptMessage );
+  
+  const [messageId, setMessageId] = useState<string | null>(null);
 
-  const inputs = usePreviewInputs();
+  useEffect(() => {
+    const handleUrlChange = () => {
+      // Your existing code to handle URL change
+      console.log("this sohuld trigger")
+    };
+  
+    // Listen for the custom event
+    window.addEventListener('urlChanged', handleUrlChange);
+  
+    // Call initially in case the URL is already set
+    handleUrlChange();
+  
+    return () => {
+      window.removeEventListener('urlChanged', handleUrlChange);
+    };
+  }, []);
 
   // const handleChatPrompt = async () => {
-
   //   const oldPromptHistory = [
   //     {
   //       "role": "system",
@@ -64,13 +112,6 @@ export default function FloatPanel() {
   // }, [inputs]);
   return (
     <div class="float-panel-container">
-        <PromptHistoryList
-          projectId={inputs?.projectId || ""}
-          onPromptMessageClick={(promptMessage) => {
-            setSelectedPromptMessage(promptMessage)
-          }}
-          selectedPromptMessage={selectedPromptMessage}
-        />
         {selectedPromptMessage
           ? <GptThreeViewer
               key={selectedPromptMessage.Id}
@@ -81,3 +122,7 @@ export default function FloatPanel() {
     </div>
   );
 }
+function useCallBack(arg0: (messageId: string) => Promise<void>, arg1: never[]) {
+  throw new Error("Function not implemented.");
+}
+

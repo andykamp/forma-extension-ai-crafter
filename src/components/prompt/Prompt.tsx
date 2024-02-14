@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "preact/hooks";
-import type { ProjectMessage } from "./PromptHistory/PromptHistoryList";
 import "./styles.css"
+import type { ProjectMessage } from "../../lib/types";
 
 function objectToQueryString(json:any) {
   return Object.keys(json)

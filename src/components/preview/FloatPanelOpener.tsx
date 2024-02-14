@@ -9,13 +9,17 @@ function getFloatingPanelUrl(polygon: Vec3[], promptHistory: PromptHistory[], se
   )
 
   // also add the polygon to the url to be used
-  if(polygon != null) {
+  // if(polygon != null) {
     const query = new URLSearchParams(url.search)
     query.set("polygon", JSON.stringify(polygon))
     query.set("promptHistory", JSON.stringify(promptHistory))
-    query.set("selectedPrompMessageId", selectedPrompMessageId.toString())
+    // query.set("selectedPrompMessageId", selectedPrompMessageId.toString())
     url.search = query.toString()
-  }
+    window.history.pushState({}, '', `${url.pathname}?${query.toString()}`);
+  // Dispatch a custom event after updating the URL
+  console.log("not triggered?")
+  window.dispatchEvent(new CustomEvent('urlChanged'))
+  // }
 
   return url.toString()
 }

@@ -1,20 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import "./promp.history.css"
 import { usePreviewInputs } from "../../preview/preview";
-
-export type ProjectMessage = {
-  Id: number;
-  DeploymentCode: number;
-  ProjectId: string;
-  User: string;
-  Assistant: string;
-  Prompt_tokens: number;
-  Completion_tokens: number;
-  Total_tokens: number;
-  CreatedAt: string;
-  UpdatedAt: string;
-  IsDeleted: boolean;
-};
+import type { ProjectMessage } from "../../../lib/types";
 
 
 async function getProjectMessages(projectId: string) {
@@ -75,7 +62,6 @@ export default function PromptHistoryList(props: PromptHistoryListProps) {
 
   useEffect(() => {
     if(!messages) return
-    console.log("scrolling")
     lastItemRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
 
