@@ -58,7 +58,7 @@ export default function FloatPanel() {
         setMessageId(messageId)
       };
     }
-})
+  })
 
   return (
     <div class="float-panel-container">

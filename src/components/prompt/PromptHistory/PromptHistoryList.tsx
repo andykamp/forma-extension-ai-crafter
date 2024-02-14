@@ -84,12 +84,13 @@ export default function PromptHistoryList() {
                 }
                 onClick={() => {
                   setSelectedPromptMessage(message)
-                  Forma.createMessagePort({
-                    embeddedViewId: "floating-panel",
-                    portName: "selectedPromptMessageId"
-                  }).then((port) => { 
-                    port.postMessage(message.Id)
-                  })
+                  const url = new URL(window.location.href)
+                  const query = new URLSearchParams(url.search)
+                  if(!message?.Id) return
+                  query.set("messageId", message.Id.toString())
+                  url.search = query.toString()
+                  window.history.pushState({}, '', `${url.pathname}?${query.toString()}`)
+                  window.dispatchEvent(new CustomEvent('historyPushState', { detail: { messageId: message.Id.toString() }}));
                 }}
               >
                 <span>{message.User}</span>

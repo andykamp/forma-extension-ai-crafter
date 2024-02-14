@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "preact/hooks";
 import "./styles.css"
 import type { ProjectMessage } from "../../lib/types";
+import type { PromptHistory } from "../preview/preview";
 
 function objectToQueryString(json:any) {
   return Object.keys(json)
@@ -67,7 +68,7 @@ function useSubmitPrompt() {
 }
 
 export type PromptProps = {
-  onPromptChange: (prompt: string) => void,
+  onPromptChange?: (prompt: string) => void,
   onPromptSubmit?: (projectMessage: ProjectMessage) => void,
   onPromptSubmitLoading?: (isLoading: boolean) => void,
   onPromptSubmitError?: (error: Error) => void
@@ -81,11 +82,20 @@ export default function Prompt(props: PromptProps) {
   } = props
   const [user, setUser] = useState <string | null>(null)
   const { submit, result, isLoading, error } = useSubmitPrompt()
+  // const [promptHistory, setPromptHistory] = useState<PromptHistory[]>([])
 
   useEffect(() => {
     if(!user) return
     submit(user).then(() => {
       setUser(null)
+      // set message id in query param
+      const url = new URL(window.location.href)
+      const query = new URLSearchParams(url.search)
+      if(!result?.Id) return
+      query.set("messageId", result.Id.toString())
+      url.search = query.toString()
+      window.history.pushState({}, '', `${url.pathname}?${query.toString()}`)
+      window.dispatchEvent(new CustomEvent('historyPushState', { detail: { messageId: result.Id.toString() }}));
     })
     return () => {
       setUser(null)
@@ -116,7 +126,6 @@ export default function Prompt(props: PromptProps) {
         if(!e?.target) return
         const value = (e.target as any).value
         if(!value) return
-        onPromptChange(value)
         setUser(value)
       }}
     />
