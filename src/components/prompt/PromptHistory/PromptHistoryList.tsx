@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import "./promp.history.css"
 import { usePreviewInputs } from "../../preview/preview";
 import type { ProjectMessage } from "../../../lib/types";
-import { Forma } from "forma-embedded-view-sdk/auto";
 
 
 async function getProjectMessages(projectId: string) {

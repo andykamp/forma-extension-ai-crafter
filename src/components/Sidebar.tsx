@@ -45,7 +45,6 @@ export default function Sidebar() {
             value={openAiVersion}
             onChange={(version) => {
               setOpenAiVersion(version)
-              //get messageId
             }}
           />
           <PromptHistoryList />

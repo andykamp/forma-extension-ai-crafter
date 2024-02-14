@@ -62,7 +62,7 @@ export default function FloatPanel() {
 
   return (
     <div class="float-panel-container">
-      {selectedPromptMessage
+      {selectedPromptMessage && !isLoading
         ? <GptThreeViewer
             key={selectedPromptMessage.Id}
             code={selectedPromptMessage.Assistant}
