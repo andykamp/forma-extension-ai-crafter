@@ -52,13 +52,16 @@ export default function Sidebar() {
           onPolygon={setPolygon}
         /> */}
         <div>
+          <h1>Your prompt history</h1>
+          <PromptHistoryList />
+          <h1>Select a model</h1>
           <SelectOpenAiVersion
             value={openAiVersion}
             onChange={(version) => {
               setOpenAiVersion(version)
             }}
           />
-          <PromptHistoryList />
+          <h1>Write new prompt</h1>
           <Prompt />
         </div>
       </div>

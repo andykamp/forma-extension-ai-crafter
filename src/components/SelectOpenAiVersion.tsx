@@ -1,17 +1,17 @@
 import { useEffect, useState } from "preact/hooks";
 
 type Version = {
-    Code: number;
-    Name: string;
-    Url: string;
-    ApiKey: string;
-    Max_tokens: number | null;
-    Temperature: number;
-    Frequency_penalty: number;
-    Presence_penalty: number;
-    Top_p: number;
-    Stop: string | null;
-    Messages: string[]; // Assuming Messages is an array of strings
+  Code: number;
+  Name: string;
+  Url: string;
+  ApiKey: string;
+  Max_tokens: number | null;
+  Temperature: number;
+  Frequency_penalty: number;
+  Presence_penalty: number;
+  Top_p: number;
+  Stop: string | null;
+  Messages: string[]; // Assuming Messages is an array of strings
 };
 
 export type SelectOpenAiVersionProps = {
@@ -53,30 +53,29 @@ export default function SelectOpenAiVersion(props: SelectOpenAiVersionProps) {
   }, []);
 
   return (
-    <div>
-      <label htmlFor="openai-version">
-        OpenAI Version:
-      </label>
-      <weave-select
-        value={value}
-        onChange={(event) => {
-          const value = (event as CustomEvent).detail.value
-          if (!value) return
-          onChange(+value)
-        }}
-      >
-        {/* // Luxon uses 1-indexed months, so we need to add 1 to the value */}
-        {options.map((version) => (
-          // <option key={version.id} value={version.name}>
-          //   {version.name}
-          // </option>
-          <weave-select-option
-            key={version.Code}
-            value={version.Code}>
-            {version.Name}
-          </weave-select-option>
-        ))}
-      </weave-select>
+    <div class="row">
+      <div class="row-item w-full">
+        <weave-select
+          value={value}
+          onChange={(event) => {
+            const value = (event as CustomEvent).detail.value
+            if (!value) return
+            onChange(+value)
+          }}
+        >
+          {/* // Luxon uses 1-indexed months, so we need to add 1 to the value */}
+          {options.map((version) => (
+            // <option key={version.id} value={version.name}>
+            //   {version.name}
+            // </option>
+            <weave-select-option
+              key={version.Code}
+              value={version.Code}>
+              {version.Name}
+            </weave-select-option>
+          ))}
+        </weave-select>
+      </div>
     </div>
   )
 }

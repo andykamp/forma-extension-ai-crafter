@@ -69,11 +69,11 @@ export default function PromptHistoryList() {
     <div
       className={"prompt-history"}
     >
-      <span
-        className={"prompt-history-title"}
-      >
-        Prompt history:
-      </span>
+      {/* <span */}
+      {/*   className={"prompt-history-title"} */}
+      {/* > */}
+      {/*   Prompt history: */}
+      {/* </span> */}
       <ul
         className="prompt-history-list"
       >
