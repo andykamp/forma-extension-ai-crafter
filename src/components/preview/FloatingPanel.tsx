@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from "preact/hooks"
 import GptThreeViewer from "./GptThreeViewer";
 import type { ProjectMessage } from "../../lib/types";
+import { Forma } from "forma-embedded-view-sdk/auto";
 
 async function getMessageById(messageId: string) { 
   const result = await fetch(`http://localhost:8080/getMessage?id=${messageId}`, {
@@ -12,10 +13,11 @@ async function getMessageById(messageId: string) {
   return result as ProjectMessage
 }
 
-function useGetMessageById(messageId: string | null) {
+function useGetMessageById() {
   const [message, setMessage] = useState<ProjectMessage | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+
   const fetchMessage = useCallback(async (messageId: string) => {
     setIsLoading(true)
     try {
@@ -26,36 +28,36 @@ function useGetMessageById(messageId: string | null) {
     } finally {
       setIsLoading(false)
     }
+    return message
   }, [])
-  console.log(messageId)
-  useEffect(() => {
-    if(!messageId) return
-    fetchMessage(messageId)
-  }, [ messageId, fetchMessage ])
-  return { message, isLoading, error }
+  
+  return { fetchMessage, message, isLoading, error }
 }
 
 export default function FloatPanel() {
   const [ selectedPromptMessage, setSelectedPromptMessage ] = useState<ProjectMessage | null>(null)
-  
-  const [messageId, setMessageId] = useState<string | null>(null);
+  const [messageId, setMessageId] = useState<string | null>(null)
+  const { fetchMessage, message, isLoading, error } = useGetMessageById()
 
   useEffect(() => {
-    const handleUrlChange = () => {
-      // Your existing code to handle URL change
-      console.log("this sohuld trigger")
-    };
+    if(!messageId) return
+    fetchMessage(messageId)
+  }, [ messageId, fetchMessage ])
+
+  useEffect(() => {
+    if(message) {
+      setSelectedPromptMessage(message)
+    }
+  }, [message])
   
-    // Listen for the custom event
-    window.addEventListener('urlChanged', handleUrlChange);
-  
-    // Call initially in case the URL is already set
-    handleUrlChange();
-  
-    return () => {
-      window.removeEventListener('urlChanged', handleUrlChange);
-    };
-  }, []);
+  Forma.onMessagePort(({ portName, port }) => {
+    if (portName === "selectedPromptMessageId") {
+      port.onmessage = (event) => {
+        const messageId = event.data
+        setMessageId(messageId)
+      };
+    }
+})
 
   // const handleChatPrompt = async () => {
   //   const oldPromptHistory = [

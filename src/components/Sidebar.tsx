@@ -8,6 +8,7 @@ import type { Vec3 } from "forma-embedded-view-sdk/dist/internal/scene/design-to
 import SelectOpenAiVersion from "./SelectOpenAiVersion";
 import PromptHistoryList from "./prompt/PromptHistory/PromptHistoryList";
 import type { ProjectMessage } from "../lib/types";
+import { Forma } from "forma-embedded-view-sdk/auto";
 
 
 export default function Sidebar() {
@@ -16,8 +17,6 @@ export default function Sidebar() {
   const [polygon, setPolygon] = useState<Vec3[]>([])
   const [openAiVersion, setOpenAiVersion] = useState<number>(2)
   const [selectedPromptMessage, setSelectedPromptMessage] = useState<ProjectMessage | null>(null)
-  const url = new URL(window.location.href)
-  const query = new URLSearchParams(url.search)
   return (
     <>
       <div className={"sidebar-wrapper"}>
@@ -36,9 +35,18 @@ export default function Sidebar() {
           <PromptHistoryList
             onPromptMessageClick={(promptMessage) => {
               setSelectedPromptMessage(promptMessage)
-              query.set("selectedPrompMessageId", promptMessage.Id.toString())
-              window.history.pushState({}, '', `${url.pathname}?${query.toString()}`);
-              window.dispatchEvent(new CustomEvent('urlChanged'))
+              Forma.createMessagePort({
+                embeddedViewId: "floating-panel",
+                portName: "selectedPromptMessageId"
+              }).then((port) => { 
+                port.postMessage(promptMessage.Id)
+              })
+              // const url = new URL(window.location.href)
+              // const query = new URLSearchParams(url.search)
+              // query.set("selectedPrompMessageId", promptMessage.Id.toString())
+              // url.search = query.toString()
+              // window.history.pushState({}, '', `${url.pathname}?${query.toString()}`);
+              // window.dispatchEvent(new CustomEvent('urlChanged'))
             }}
             selectedPromptMessage={selectedPromptMessage}
           />
