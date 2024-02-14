@@ -37,6 +37,7 @@ function useGetMessageById() {
 export default function FloatPanel() {
   const [ selectedPromptMessage, setSelectedPromptMessage ] = useState<ProjectMessage | null>(null)
   const [messageId, setMessageId] = useState<string | null>(null)
+  console.log('messageId', messageId);
   const { fetchMessage, message, isLoading, error } = useGetMessageById()
 
   useEffect(() => {

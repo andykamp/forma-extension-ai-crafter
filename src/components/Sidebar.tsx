@@ -6,18 +6,22 @@ import SelectOpenAiVersion from "./SelectOpenAiVersion";
 import PromptHistoryList from "./prompt/PromptHistory/PromptHistoryList";
 import { Forma } from "forma-embedded-view-sdk/auto";
 
-function openFloatingPanel() {
-  const url = new URL(
-    'http://localhost:8081/floating-panel'
-  ).toString()
-  void Forma.openFloatingPanel({
-    embeddedViewId: "floating-panel",
-    url,
-    preferredSize: {
-      width: 10000,
-      height: 10000
-    },
-  })
+async function openFloatingPanel() {
+  try {
+    const url = new URL(
+      'http://localhost:8081/floating-panel'
+    ).toString()
+    await Forma.openFloatingPanel({
+      embeddedViewId: "floating-panel",
+      url,
+      preferredSize: {
+        width: 10000,
+        height: 10000
+      },
+    })
+  } catch (e) {
+    console.warn(e)
+  }
 }
 
 
@@ -27,16 +31,15 @@ export default function Sidebar() {
   // const [promptHistory, setPromptHistory] = useState<PromptHistory[]>([])
   const [openAiVersion, setOpenAiVersion] = useState<number>(2)
   useEffect(() => {
-    window.addEventListener('historyPushState', (e) => {
+    window.addEventListener('historyPushState', async (e) => {
       const messageId = (e as CustomEvent).detail.messageId
-      if(!messageId) return
-      openFloatingPanel()
-      void Forma.createMessagePort({
+      if (!messageId) return
+      await openFloatingPanel()
+      const port = await Forma.createMessagePort({
         embeddedViewId: "floating-panel",
         portName: "selectedPromptMessageId"
-      }).then((port) => {
-        port.postMessage(messageId);
       })
+      port.postMessage(messageId);
     })
     return () => {
       window.removeEventListener('historyPushState', () => null)
@@ -62,7 +65,7 @@ export default function Sidebar() {
             }}
           />
           <h1>Write new prompt</h1>
-          <Prompt 
+          <Prompt
             versionId={openAiVersion}
           />
         </div>

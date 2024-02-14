@@ -2,13 +2,13 @@ import { useCallback, useEffect, useState } from "preact/hooks";
 import "./styles.css"
 import type { ProjectMessage } from "../../lib/types";
 
-function objectToQueryString(json:any) {
+function objectToQueryString(json: any) {
   return Object.keys(json)
     .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(json[key])}`)
     .join('&');
 }
 
-async function submitPrompt(user: string, versionId:number) {
+async function submitPrompt(user: string, versionId: number) {
   const queryParams = new URLSearchParams(window.location.search);
   const projectId = queryParams.get('projectId')
 
@@ -36,30 +36,34 @@ async function submitPrompt(user: string, versionId:number) {
   //   console.error('Error:', error);
   // }
   // return res as ProjectMessage
-  const result = await fetch(url, {
+  const res = await fetch(url, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json'
     }
-  }).then((response) => response.json())
+  })
+  const json = await res.json()
+  const result = json.upsertResponse
   return result as ProjectMessage
 }
 
-function useSubmitPrompt(versionId:number) {
+function useSubmitPrompt(versionId: number) {
   const [result, setResult] = useState<ProjectMessage | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const submit = useCallback(async (user: string) => {
     setIsLoading(true)
+    let projectMessages
     try {
-      const projectMessages = await submitPrompt(user, versionId)
+      projectMessages = await submitPrompt(user, versionId)
       setResult(projectMessages)
     } catch (err) {
       setError(err as Error)
     } finally {
       setIsLoading(false)
     }
-    return result
+    console.log('sssssssssssssssssssss',);
+    return projectMessages
   }, [versionId])
 
   return { submit, result, isLoading, error }
@@ -81,7 +85,7 @@ export default function Prompt(props: PromptProps) {
     onPromptSubmitLoading,
     onPromptSubmitError
   } = props
-  const [user, setUser] = useState <string | null>(null)
+  const [user, setUser] = useState<string | null>(null)
   const { submit, result, isLoading, error } = useSubmitPrompt(versionId)
 
   useEffect(() => {
@@ -89,22 +93,24 @@ export default function Prompt(props: PromptProps) {
   }, [isLoading])
 
   useEffect(() => {
-    if(!error) return
+    if (!error) return
     onPromptSubmitError?.(error)
   }, [error])
 
   const onSubmit = useCallback(() => {
-    if(!user) return
-    submit(user).then(() => { 
+    if (!user) return
+    submit(user).then((result) => {
       setUser(null)
       // set message id in query param
       const url = new URL(window.location.href)
       const query = new URLSearchParams(url.search)
-      if(!result?.Id) return
+      if (!result?.Id) return
       query.set("messageId", result.Id.toString())
       url.search = query.toString()
       window.history.pushState({}, '', `${url.pathname}?${query.toString()}`)
-      window.dispatchEvent(new CustomEvent('historyPushState', { detail: { messageId: result.Id.toString() }}));
+      window.dispatchEvent(new CustomEvent('historyPushState', { detail: { messageId: result.Id.toString() } }));
+      console.log('push updateHistory',);
+      window.dispatchEvent(new CustomEvent('updateHistory', { detail: { messageId: result.Id.toString() } }));
     })
   }, [user, submit])
 
@@ -116,9 +122,9 @@ export default function Prompt(props: PromptProps) {
         disabled={isLoading}
         value={isLoading ? " Loading..." : user || ""}
         onChange={(e) => {
-          if(!e?.target) return
+          if (!e?.target) return
           const value = (e.target as any).value
-          if(!value) return
+          if (!value) return
           setUser(value)
         }}
       />
@@ -127,7 +133,7 @@ export default function Prompt(props: PromptProps) {
         disabled={isLoading}
         onClick={onSubmit}
       >
-        {isLoading ? "Loading...": "Submit"}
+        {isLoading ? "Loading..." : "Submit"}
       </weave-button>
     </div>
   )

@@ -21,7 +21,7 @@ function useProjectMessages() {
   const [error, setError] = useState<Error | null>(null);
   const inputs = usePreviewInputs()
   const fetchMessages = useCallback(async () => {
-    if(!inputs?.projectId) return
+    if (!inputs?.projectId) return
     try {
       const projectMessages = await getProjectMessages(inputs.projectId)
       setMessages(projectMessages)
@@ -30,15 +30,15 @@ function useProjectMessages() {
     } finally {
       setIsLoading(false)
     }
-  }, [ inputs?.projectId ])
-  
+  }, [inputs?.projectId])
+
   useEffect(() => {
-    if(!inputs?.projectId) return
+    if (!inputs?.projectId) return
     setIsLoading(true)
     setError(null)
 
     fetchMessages()
-  }, [ inputs?.projectId ])
+  }, [inputs?.projectId])
 
   return { fetchMessages, messages, isLoading, error }
 }
@@ -49,26 +49,30 @@ export default function PromptHistoryList() {
   const [selectedPromptMessage, setSelectedPromptMessage] = useState<ProjectMessage | null>(null)
 
   useEffect(() => {
-    if(!selectedPromptMessage) return
+    if (!selectedPromptMessage) return
     fetchMessages()
   }, [selectedPromptMessage, fetchMessages])
 
   useEffect(() => {
-    if(!messages) return
-    if(selectedPromptMessage) return
+    if (!messages) return
+    if (selectedPromptMessage) return
     lastItemRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
 
-  // useEffect(() => {
-  //   window.addEventListener('refetch', (e) => { 
-  //     console.log("refetch")
-  //   })
-  // }, [])
+  useEffect(() => {
+    window.addEventListener('updateHistory', (e) => { 
+      console.log("REEEEEEFETCH")
+      fetchMessages()
+    })
+  }, [fetchMessages])
 
   return (
     <div
       className={"prompt-history"}
     >
+      {/* <button onClick={fetchMessages}> */}
+      {/*   Refresh */}
+      {/* </button> */}
       {/* <span */}
       {/*   className={"prompt-history-title"} */}
       {/* > */}
@@ -79,36 +83,36 @@ export default function PromptHistoryList() {
       >
         {messages.length === 0 ? <li>No messages</li> : null}
         {messages.map((message, index) => {
-            return (
-              <li
-                key={message.Id}
-                ref={index === messages.length - 1 ? lastItemRef : null}
-                className={selectedPromptMessage?.Id === message.Id
-                  ? "prompt-history-item prompt-history-item-selected"
-                  : "prompt-history-item"
-                }
-                onClick={() => {
-                  // openFloatingPanel()
-                  setSelectedPromptMessage(message)
-                  const url = new URL(window.location.href)
-                  const query = new URLSearchParams(url.search)
-                  if(!message?.Id) return
-                  query.set("messageId", message.Id.toString())
-                  url.search = query.toString()
-                  window.history.pushState({}, '', `${url.pathname}?${query.toString()}`)
-                  window.dispatchEvent(new CustomEvent('historyPushState', { detail: { messageId: message.Id.toString() }}));
-                }}
-              >
-                <span>{message.User}</span>
-                {/* <span>{message.Assistant}</span> */}
-                {/* <span>{message.Prompt_tokens}</span> */}
-                {/* <span>{message.Completion_tokens}</span>
+          return (
+            <li
+              key={message.Id}
+              ref={index === messages.length - 1 ? lastItemRef : null}
+              className={selectedPromptMessage?.Id === message.Id
+                ? "prompt-history-item prompt-history-item-selected"
+                : "prompt-history-item"
+              }
+              onClick={() => {
+                // openFloatingPanel()
+                setSelectedPromptMessage(message)
+                const url = new URL(window.location.href)
+                const query = new URLSearchParams(url.search)
+                if (!message?.Id) return
+                query.set("messageId", message.Id.toString())
+                url.search = query.toString()
+                window.history.pushState({}, '', `${url.pathname}?${query.toString()}`)
+                window.dispatchEvent(new CustomEvent('historyPushState', { detail: { messageId: message.Id.toString() } }));
+              }}
+            >
+              <span>{message.User} {message.DeploymentCode}</span>
+              {/* <span>{message.Assistant}</span> */}
+              {/* <span>{message.Prompt_tokens}</span> */}
+              {/* <span>{message.Completion_tokens}</span>
                 <span>{message.Total_tokens}</span> */}
-                {/* <span>{message.CreatedAt}</span>
+              {/* <span>{message.CreatedAt}</span>
                 <span>{message.UpdatedAt}</span> */}
-              </li>
-            )
-          })
+            </li>
+          )
+        })
         }
       </ul>
     </div>
