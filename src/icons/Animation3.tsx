@@ -1,0 +1,22 @@
+import { h } from 'preact';
+
+interface Animation3Props {
+  width?: string;  // Width can be in px, em, %, etc.
+  height?: string; // Height can be in px, em, %, etc.
+}
+
+const Animation3 = ({ width = "24", height = "24" }: Animation3Props) => (
+<svg width="200" height="199" viewBox="0 0 200 199" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path opacity="0.4" d="M16.8198 110.405L98.7084 62.7822L182.239 112.047L98.7084 159.997L16.8198 110.405Z" fill="#D9D9D9" stroke="black" stroke-width="0.218953"/>
+<path d="M65.0972 132.3L97.7212 151.239L130.017 132.3L97.7212 115.002L65.0972 132.3Z" fill="#D9D9D9" stroke="black" stroke-width="0.218953"/>
+<path d="M102.215 110.514L134.839 129.454L167.135 110.514L134.839 93.2168L102.215 110.514Z" fill="#D9D9D9" stroke="black" stroke-width="0.218953"/>
+<path d="M65.2061 87.9628L97.8301 106.902L130.126 87.9628L97.8301 70.6655L65.2061 87.9628Z" fill="#D9D9D9" stroke="black" stroke-width="0.218953"/>
+<path d="M27.7676 110.514L60.3916 129.454L92.6872 110.514L60.3916 93.2168L27.7676 110.514Z" fill="#D9D9D9" stroke="black" stroke-width="0.218953"/>
+<path d="M130.019 88.7281L99.2557 106.901L66.3032 88.7281V52.7102L99.2557 39.792L130.019 55.0092V88.7281Z" fill="#D9D9D9"/>
+<path d="M99.2557 106.901L130.019 88.7281V55.0092M99.2557 106.901L66.3032 88.7281V52.7102M99.2557 106.901V70.8834M99.2557 70.8834L66.3032 52.7102M99.2557 70.8834L130.019 55.0092M66.3032 52.7102L99.2557 39.792L130.019 55.0092" stroke="black" stroke-width="0.218953"/>
+<path d="M165.931 111.718L135.168 129.891L102.215 111.718V75.7005L135.168 62.7822L165.931 77.9995V111.718Z" fill="#D9D9D9"/>
+<path d="M135.168 129.891L165.931 111.718V77.9995M135.168 129.891L102.215 111.718V75.7005M135.168 129.891V93.8736M135.168 93.8736L102.215 75.7005M135.168 93.8736L165.931 77.9995M102.215 75.7005L135.168 62.7822L165.931 77.9995" stroke="black" stroke-width="0.218953"/>
+</svg>
+);
+
+export default Animation3;

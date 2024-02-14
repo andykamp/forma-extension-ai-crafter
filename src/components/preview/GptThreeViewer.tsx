@@ -3,9 +3,11 @@ import { useEffect, useRef, useState, useCallback } from 'preact/hooks';
 import * as THREE from 'three';
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
 import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter"
+import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
 import {
-  addPolygon,
+  // addPolygon,
   useResize,
+  findGroupById,
   useInjectCode,
   alignSceneChildrenToElevation,
   generateMeshFromTriangles,
@@ -14,7 +16,6 @@ import {
 import BuildingIcon from '../../icons/BuildingIcon';
 import TerrainIcon from '../../icons/TerrainIcon';
 import CloseIcon from '../../icons/CloseIcon';
-import LoadingAnimation from './LoadingAnimation';
 
 const isRaycastHeperEnabled = true
 const TERRAIN_ID = 'terrain'
@@ -22,7 +23,8 @@ const BUILDINGS_ID = 'buildings'
 const TERRAIN_COLOR = "#CDCDCD"
 const BUILDINGS_COLOR = "#F8F8F8"
 const POLYGON_ID = 'polygon'
-const POLYGON_COLOR = "#BDA6A7"
+// const POLYGON_COLOR = "#BDA6A7"
+const GPT_ID = 'gptGroup'
 
 let renderIteration = 0
 
@@ -33,13 +35,16 @@ function GptThreeViewer(props: GptThreeViewerInput) {
   const [isLoading, setIsLoading] = useState(true);
 
   const [scene] = useState(new THREE.Scene())
-  const [_controls, setControls] = useState<OrbitControls>()
+  const [controls, setControls] = useState<OrbitControls>()
+  const [transformControls, setTransformControls] = useState<TransformControls>()
   const [camera, setCamera] = useState<THREE.PerspectiveCamera>()
   const [renderer, setRenderer] = useState<THREE.WebGLRenderer>()
 
   const [terrainMesh, setTerrainMesh] = useState<THREE.Mesh>()
   const [isTerrainVisible, setIsTerrainVisible] = useState(true);
   const [buildingsMesh, setBuildingsMesh] = useState<THREE.Mesh>()
+  const [gptMesh, setGptMesh] = useState<THREE.Mesh>()
+  const [showTransformControls, setShowTransformControls] = useState(false)
   const [isBuildingsVisible, setIsBuildingsVisible] = useState(true);
   // const [polygonMesh, setPolygonMesh] = useState<THREE.Mesh>()
 
@@ -95,39 +100,58 @@ function GptThreeViewer(props: GptThreeViewerInput) {
   }
 
   // @todo: import stuff properly here
-  async function initPolygon() {
-    const hardcodedPolygon = [
-      {
-        x: 219.33777656630846,
-        y: -50.91393813236924,
-        z: 22.12495751785366
-      },
-      {
-        x: 231.47731857895823,
-        y: -100.54778426098883,
-        z: 21.63478611987682
-      },
-      {
-        x: 166.84892464529258,
-        y: -93.08562445100738,
-        z: 20.927945636131312
-      }
-    ]
-    const mesh = await addPolygon({
-      polygon: hardcodedPolygon,
-      color: POLYGON_COLOR
-    })
-    mesh.rotation.x = -Math.PI / 2
-    mesh.userData = {
-      id: POLYGON_ID,
-      isBuiltin: true
+  // async function initPolygon() {
+  //   const hardcodedPolygon = [
+  //     {
+  //       x: 219.33777656630846,
+  //       y: -50.91393813236924,
+  //       z: 22.12495751785366
+  //     },
+  //     {
+  //       x: 231.47731857895823,
+  //       y: -100.54778426098883,
+  //       z: 21.63478611987682
+  //     },
+  //     {
+  //       x: 166.84892464529258,
+  //       y: -93.08562445100738,
+  //       z: 20.927945636131312
+  //     }
+  //   ]
+  //   const mesh = await addPolygon({
+  //     polygon: hardcodedPolygon,
+  //     color: POLYGON_COLOR
+  //   })
+  //   mesh.rotation.x = -Math.PI / 2
+  //   mesh.userData = {
+  //     id: POLYGON_ID,
+  //     isBuiltin: true
+  //   }
+  //   if (terrainMesh != null) {
+  //     scene.remove(terrainMesh)
+  //   }
+  //   scene.add(mesh)
+  //   // setPolygonMesh(mesh)
+  // }
+
+
+  const onAfterCodeInjection = useCallback(async () => {
+    // align scene children to elevation
+    const blacklistedIds = [TERRAIN_ID, BUILDINGS_ID, POLYGON_ID]
+    await alignSceneChildrenToElevation({ scene, terrainMesh, isRaycastHeperEnabled, blacklistedIds })
+
+    // remove added light that is not built in to the scene
+    removeNonBuiltinLights({ scene })
+
+    const gptGroup = findGroupById(scene, GPT_ID);
+    if (gptGroup) {
+      setGptMesh(gptGroup);
+    } else {
+      console.log("Group not found");
     }
-    if (terrainMesh != null) {
-      scene.remove(terrainMesh)
-    }
-    scene.add(mesh)
-    setPolygonMesh(mesh)
-  }
+
+  }, [scene, terrainMesh, gptMesh, buildingsMesh])
+
 
   // --------------------------------------
   // THREEJS setup
@@ -159,7 +183,8 @@ function GptThreeViewer(props: GptThreeViewerInput) {
     // newCamera.up.set(0, 0, 1) // @note: SETS THE UP DIRECTION TO Z
     newCamera.position.set(200, 100, 400)
     setCamera(newCamera)
-    setControls(new OrbitControls(newCamera, canvas))
+    const orbitControls = new OrbitControls(newCamera, canvas)
+    setControls(orbitControls)
 
     const dl = new THREE.DirectionalLight(0xffffff, 1)
     dl.position.set(0, 0.75, 0.2)
@@ -177,10 +202,22 @@ function GptThreeViewer(props: GptThreeViewerInput) {
 
     initTerrain()
     initBuidings()
-    initPolygon()
+    // initPolygon()
     // setTimeout(() => {
-      setIsLoading(false)
+    setIsLoading(false)
     // }, 3000)
+    const control = new TransformControls(newCamera, renderer.domElement);
+
+    control.addEventListener('dragging-changed', function(event) {
+
+      orbitControls.enabled = !event.value;
+
+    });
+    control.addEventListener('mouseUp', function(event) {
+      //@todo: uncomment this to snap on mouseup
+      // onAfterCodeInjection()
+    });
+    setTransformControls(control)
   }, [])
 
   useEffect(() => {
@@ -201,17 +238,32 @@ function GptThreeViewer(props: GptThreeViewerInput) {
     requestAnimationFrame(loop)
   }, [camera, renderer])
 
+  const addTransformControls = useCallback(() => {
+    if (!camera || !renderer || !controls) return
+    if (transformControls) {
+      scene.remove(transformControls)
+    }
+
+    const control = new TransformControls(camera, renderer.domElement);
+
+    control.addEventListener('dragging-changed', function(event) {
+
+      controls.enabled = !event.value;
+
+    });
+    control.addEventListener('mouseUp', function(event) {
+      //@todo: uncomment this to snap on mouseup
+      // onAfterCodeInjection()
+    });
+    setTransformControls(control)
+  }, [camera, renderer, controls, onAfterCodeInjection])
+
+  useEffect(() => {
+    addTransformControls()
+  }, [camera, renderer, controls, onAfterCodeInjection]);
+
   // --------------------------------------
   // --------------------------------------
-
-  const onAfterCodeInjection = useCallback(async () => {
-    // align scene children to elevation
-    const blacklistedIds = [TERRAIN_ID, BUILDINGS_ID, POLYGON_ID]
-    await alignSceneChildrenToElevation({ scene, terrainMesh, isRaycastHeperEnabled, blacklistedIds })
-
-    // remove added light that is not built in to the scene
-    removeNonBuiltinLights({ scene })
-  }, [scene, terrainMesh, buildingsMesh])
 
   // resizer
   useResize({ camera, renderer, canvasRef })
@@ -243,6 +295,26 @@ function GptThreeViewer(props: GptThreeViewerInput) {
     }
   }
 
+  function toggleTerrain() {
+    if (terrainMesh) {
+      terrainMesh.visible = !terrainMesh.visible
+      setIsTerrainVisible(terrainMesh.visible)
+    }
+  }
+
+  function toggleTransformControls() {
+    if (!transformControls || !gptMesh) return
+    const newVisibility = !showTransformControls
+    transformControls.visible = newVisibility
+    setShowTransformControls(newVisibility)
+    if (newVisibility) {
+      transformControls.attach(gptMesh);
+      scene.add(transformControls);
+    } else {
+      scene.remove(transformControls);
+    }
+  }
+
   async function addToForma() {
 
     if (terrainMesh) {
@@ -250,6 +322,9 @@ function GptThreeViewer(props: GptThreeViewerInput) {
     }
     if (buildingsMesh) {
       scene.remove(buildingsMesh)
+    }
+    if (transformControls) {
+      scene.remove(transformControls)
     }
 
     const glb: ArrayBuffer = await new Promise((resolve, reject) => {
@@ -290,6 +365,31 @@ function GptThreeViewer(props: GptThreeViewerInput) {
         <weave-button
           disabled={isLoading}
           onClick={() => {
+            toggleTransformControls()
+          }}
+        >
+          Toggle movement controls
+          &nbsp;
+          <TerrainIcon />
+
+        </weave-button>
+
+        <weave-button
+          disabled={isLoading}
+          onClick={() => {
+            const blacklistedIds = [TERRAIN_ID, BUILDINGS_ID, POLYGON_ID]
+            alignSceneChildrenToElevation({ scene, terrainMesh, isRaycastHeperEnabled, blacklistedIds })
+          }}
+        >
+          Align to elevation
+          &nbsp;
+          <TerrainIcon />
+        </weave-button>
+
+
+        <weave-button
+          disabled={isLoading}
+          onClick={() => {
             toggleBuildings()
           }}
         >
@@ -319,8 +419,7 @@ function GptThreeViewer(props: GptThreeViewerInput) {
 
       {error && <div class="canvas-error-message">{error}</div>}
       {isLoading && <div class="canvas-loading-container">
-        Crafting ...
-        <LoadingAnimation />
+        Loading ...
       </div>}
 
       <weave-button

@@ -1,38 +1,52 @@
+
 import { h } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
 import BuildingIcon from '../../icons/BuildingIcon';
 import TerrainIcon from '../../icons/TerrainIcon';
+import Animation1 from '../../icons/Animation1';
+import Animation2 from '../../icons/Animation2';
+import Animation3 from '../../icons/Animation3';
+import Animation4 from '../../icons/Animation4';
 
 const LoadingIndicator = () => {
-  const [visibleSvg, setVisibleSvg] = useState({ svg1: false, svg2: false, svg3: false });
+  const [currentSvg, setCurrentSvg] = useState(0);
 
   useEffect(() => {
-    const sequence = ['svg1', 'svg2', 'svg3', 'clear'];
-    let currentStep = 0;
+    const sequence = [1, 2, 3, 4, 0]; // 0 indicates clear
+    let index = 0;
 
     const interval = setInterval(() => {
-      const step = sequence[currentStep % sequence.length];
-      setVisibleSvg(prevState => {
-        return {
-          svg1: step === 'svg1' || (step !== 'clear' && prevState.svg1),
-          svg2: step === 'svg2' || (step !== 'clear' && prevState.svg2),
-          svg3: step === 'svg3' || (step !== 'clear' && prevState.svg3)
-        };
-      });
-      currentStep++;
-    }, 1000); // Adjust time as needed
+      setCurrentSvg(sequence[index]);
+      index = (index + 1) % sequence.length;
+    }, 1000); // Change the SVG every 1 second
 
-    return () => clearInterval(interval);
+    return () => clearInterval(interval); // Cleanup on unmount
   }, []);
 
   return (
     <div style={{ position: 'relative', width: '50px', height: '50px' }}>
-      {visibleSvg.svg1 && <BuildingIcon />}
-      {visibleSvg.svg2 && <TerrainIcon />}
-      {visibleSvg.svg3 && <BuildingIcon />}
+      {currentSvg === 1 && (
+        <div style={{ position: 'absolute' }}>
+          <Animation1 />
+        </div>
+      )}
+      {currentSvg === 2 && (
+        <div style={{ position: 'absolute' }}>
+          <Animation2 />
+        </div>
+      )}
+      {currentSvg === 3 && (
+        <div style={{ position: 'absolute' }}>
+          <Animation3 />
+        </div>
+      )}
+      {currentSvg === 4 && (
+        <div style={{ position: 'absolute' }}>
+          <Animation4 />
+        </div>
+      )}
     </div>
   );
 };
 
 export default LoadingIndicator;
-

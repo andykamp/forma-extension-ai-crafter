@@ -2,6 +2,23 @@ import { Forma } from "forma-embedded-view-sdk/auto"
 import { RefObject } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
 import * as THREE from 'three';
+import { DUMMY_STR_CODE } from './constants'
+
+
+// --------------------------------------
+// Misc
+// --------------------------------------
+
+// find the group
+export function findGroupById(scene, id) {
+  let found = null;
+  scene.traverse((object) => {
+    if (object.userData && object.userData.id === id) {
+      found = object;
+    }
+  });
+  return found;
+}
 
 // @todo:remove
 export function rotateAllObjectsAroundSceneAxis(scene: THREE.Scene, angle: number, axis: string) {
@@ -164,11 +181,11 @@ export function useInjectCode(props: UseInjectCodeProps) {
     // Modify the script to use the created canvas
     // const modifiedCode = code.replace(/<script>|<\/script>/g, ''); //DUMMY_STR_CODE //code.replace(/document\.body\.appendChild\(renderer\.domElement\);/, '');
     const codeInsideScripts = code.match(/<script>([\s\S]*?)<\/script>/)
-    if(!codeInsideScripts || !codeInsideScripts.length) {
+    if (!codeInsideScripts || !codeInsideScripts.length) {
       setError('No code was generated. Seems like the Ai had a bad run :(')
-      return  
+      return
     }
-    const modifiedCode = codeInsideScripts[1]
+    const modifiedCode = codeInsideScripts[1] //DUMMY_STR_CODE
 
     console.log('___COOOOOOODEEEE___', modifiedCode);
 
@@ -205,7 +222,7 @@ export function useInjectCode(props: UseInjectCodeProps) {
   return { error } as const
 }
 
-type RemoveNonBuiltinLightsProps = { 
+type RemoveNonBuiltinLightsProps = {
   scene: THREE.Scene | undefined
 }
 export function removeNonBuiltinLights(props: RemoveNonBuiltinLightsProps) {
@@ -293,19 +310,24 @@ export async function alignSceneChildrenToElevation(props: AlignSceneChildrenToE
     blacklistedIds = []
   } = props
 
+  console.log('SCENE TRAV',terrainMesh );
+
   if (!terrainMesh) return
 
+  console.log('SCENE TRAV', );
   scene.traverse(async (child) => {
     const userData = child.userData
-    if (blacklistedIds.includes(userData.id)) return
-    const { x, y, z } = child.position
-    // const elevation = await Forma.terrain.getElevationAt({ x, y: z })
-    const elevation = getThreejsElevation(x, z, terrainMesh) || 0
-    if (isRaycastHeperEnabled) {
-      addRaycastHelper(scene, x, y, z)
+    if (userData.id === "gptGroup") {
+      console.log('UPATE ELEVATIOn', );
+      const { x, y, z } = child.position
+      // const elevation = await Forma.terrain.getElevationAt({ x, y: z })
+      const elevation = getThreejsElevation(x, z, terrainMesh) || 0
+      if (isRaycastHeperEnabled) {
+        addRaycastHelper(scene, x, y, z)
+      }
+      child.position.y = elevation
     }
 
-    child.position.y += elevation
   })
 }
 
