@@ -122,9 +122,10 @@ export default function Prompt(props: PromptProps) {
       />
       <weave-button
         variant="solid"
+        disabled={isLoading}
         onClick={onSubmit}
       >
-        Submit
+        {isLoading ? "Loading...": "Submit"}
       </weave-button>
     </div>
   )
