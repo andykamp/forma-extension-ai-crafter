@@ -8,13 +8,13 @@ function objectToQueryString(json:any) {
     .join('&');
 }
 
-async function submitPrompt(user: string) {
+async function submitPrompt(user: string, versionId:number) {
   const queryParams = new URLSearchParams(window.location.search);
   const projectId = queryParams.get('projectId')
 
   const body = {
     projectId: projectId,
-    deploymentCode: 1,
+    deploymentCode: versionId,
     user
   }
 
@@ -45,14 +45,14 @@ async function submitPrompt(user: string) {
   return result as ProjectMessage
 }
 
-function useSubmitPrompt() {
+function useSubmitPrompt(versionId:number) {
   const [result, setResult] = useState<ProjectMessage | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const submit = useCallback(async (user: string) => {
     setIsLoading(true)
     try {
-      const projectMessages = await submitPrompt(user)
+      const projectMessages = await submitPrompt(user, versionId)
       setResult(projectMessages)
     } catch (err) {
       setError(err as Error)
@@ -60,13 +60,14 @@ function useSubmitPrompt() {
       setIsLoading(false)
     }
     return result
-  }, [])
+  }, [versionId])
 
   return { submit, result, isLoading, error }
 
 }
 
 export type PromptProps = {
+  versionId: number,
   onPromptChange?: (prompt: string) => void,
   onPromptSubmit?: (projectMessage: ProjectMessage) => void,
   onPromptSubmitLoading?: (isLoading: boolean) => void,
@@ -74,13 +75,14 @@ export type PromptProps = {
 }
 export default function Prompt(props: PromptProps) {
   const {
+    versionId,
     onPromptChange,
     onPromptSubmit,
     onPromptSubmitLoading,
     onPromptSubmitError
   } = props
   const [user, setUser] = useState <string | null>(null)
-  const { submit, result, isLoading, error } = useSubmitPrompt()
+  const { submit, result, isLoading, error } = useSubmitPrompt(versionId)
 
   useEffect(() => {
     onPromptSubmitLoading?.(isLoading)

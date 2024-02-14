@@ -62,7 +62,9 @@ export default function Sidebar() {
             }}
           />
           <h1>Write new prompt</h1>
-          <Prompt />
+          <Prompt 
+            versionId={openAiVersion}
+          />
         </div>
       </div>
     </>
