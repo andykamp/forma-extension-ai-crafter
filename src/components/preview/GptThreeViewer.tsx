@@ -16,6 +16,9 @@ import {
 import BuildingIcon from '../../icons/BuildingIcon';
 import TerrainIcon from '../../icons/TerrainIcon';
 import CloseIcon from '../../icons/CloseIcon';
+import ElevationIcon from '../../icons/ElevateIcon';
+import MoveIcon from '../../icons/MoveIcon';
+import LoadingIndicator from "./LoadingAnimation";
 
 const isRaycastHeperEnabled = true
 const TERRAIN_ID = 'terrain'
@@ -28,11 +31,20 @@ const GPT_ID = 'gptGroup'
 
 let renderIteration = 0
 
-type GptThreeViewerInput = { code: string }
+type GptThreeViewerInput = {
+  code: string
+  isLoading: boolean
+}
 
 function GptThreeViewer(props: GptThreeViewerInput) {
-  const { code } = props;
-  const [isLoading, setIsLoading] = useState(true);
+  const { code, isLoading: isExternalLoading } = props;
+  const [isLoading, setIsLoading] = useState(isExternalLoading);
+  const [isExporting, setIsExporting] = useState(false);
+
+  useEffect(() => {
+    if (isExternalLoading === isLoading) return;
+    setIsLoading(isExternalLoading)
+  }, [isExternalLoading]);
 
   const [scene] = useState(new THREE.Scene())
   const [controls, setControls] = useState<OrbitControls>()
@@ -55,7 +67,6 @@ function GptThreeViewer(props: GptThreeViewerInput) {
   // --------------------------------------
 
   async function storeGptMesh(glbData) {
-    setIsLoading(true)
     // store intergrated mesh
     const upload = await Forma.integrateElements.uploadFile({
       data: glbData
@@ -404,9 +415,9 @@ function GptThreeViewer(props: GptThreeViewerInput) {
             toggleTransformControls()
           }}
         >
-          Toggle movement controls
+          Move
           &nbsp;
-          <TerrainIcon />
+          <MoveIcon />
 
         </weave-button>
 
@@ -419,7 +430,7 @@ function GptThreeViewer(props: GptThreeViewerInput) {
         >
           Align to elevation
           &nbsp;
-          <TerrainIcon />
+          <ElevationIcon />
         </weave-button>
 
 
@@ -451,6 +462,17 @@ function GptThreeViewer(props: GptThreeViewerInput) {
           }
         </weave-button>
 
+        <weave-button
+          disabled={isLoading}
+          variant="solid"
+          onClick={() => {
+            setIsExporting(true)
+            addToForma()
+          }}
+        >
+          Crafting complete! Add to Forma
+        </weave-button>
+
       </div>
 
       {error && <div class="canvas-error-message">{error}</div>}
@@ -458,16 +480,10 @@ function GptThreeViewer(props: GptThreeViewerInput) {
         Loading ...
       </div>}
 
-      <weave-button
-        disabled={isLoading}
-        variant="solid"
-        class="canvas-submit-button"
-        onClick={() => {
-          addToForma()
-        }}
-      >
-        Crafting complete! Add to Forma
-      </weave-button>
+      {isExporting &&
+        <div class="canvas-export-container">
+          Exporting to forma...
+        </div>}
 
       <canvas
         id="canvas"

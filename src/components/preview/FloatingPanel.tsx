@@ -63,14 +63,11 @@ export default function FloatPanel() {
   console.log('selectedPromptMessage',selectedPromptMessage );
   return (
     <div class="float-panel-container">
-      {selectedPromptMessage && !isLoading
-        ? <GptThreeViewer
-            key={selectedPromptMessage.Id}
-            code={selectedPromptMessage.Assistant}
+        <GptThreeViewer
+            isLoading={isLoading}
+            key={selectedPromptMessage?.Id || 'no-id'}
+            code={selectedPromptMessage?.Assistant || ''}
         />
-        : <p>No prompt selected</p>
-      }
-      {isLoading && <p>Loading...</p>}
     </div>
   );
 }
