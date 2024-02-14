@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "preact/hooks";
 import "./styles.css"
 import type { ProjectMessage } from "../../lib/types";
-import type { PromptHistory } from "../preview/preview";
 
 function objectToQueryString(json:any) {
   return Object.keys(json)
@@ -82,11 +81,19 @@ export default function Prompt(props: PromptProps) {
   } = props
   const [user, setUser] = useState <string | null>(null)
   const { submit, result, isLoading, error } = useSubmitPrompt()
-  // const [promptHistory, setPromptHistory] = useState<PromptHistory[]>([])
 
   useEffect(() => {
+    onPromptSubmitLoading?.(isLoading)
+  }, [isLoading])
+
+  useEffect(() => {
+    if(!error) return
+    onPromptSubmitError?.(error)
+  }, [error])
+
+  const onSubmit = useCallback(() => {
     if(!user) return
-    submit(user).then(() => {
+    submit(user).then(() => { 
       setUser(null)
       // set message id in query param
       const url = new URL(window.location.href)
@@ -97,37 +104,28 @@ export default function Prompt(props: PromptProps) {
       window.history.pushState({}, '', `${url.pathname}?${query.toString()}`)
       window.dispatchEvent(new CustomEvent('historyPushState', { detail: { messageId: result.Id.toString() }}));
     })
-    return () => {
-      setUser(null)
-    }
-  }, [ user, submit ])
-  
-  useEffect(() => {
-    if(!result) return
-    onPromptSubmit?.(result)
-  }, [result])
-  
-  useEffect(() => {
-    onPromptSubmitLoading?.(isLoading)
-  }, [isLoading])
-
-  useEffect(() => {
-    if(!error) return
-    onPromptSubmitError?.(error)
-  }, [error])
+  }, [user, submit])
 
   return (
-    <textarea
-      className={"prompt-textarea"}
-      placeholder={"Type your prompt here..."}
-      disabled={isLoading}
-      value={isLoading ? " Loading..." : user || ""}
-      onChange={(e) => {
-        if(!e?.target) return
-        const value = (e.target as any).value
-        if(!value) return
-        setUser(value)
-      }}
-    />
+    <div className={"section"}>
+      <textarea
+        className={"prompt-textarea"}
+        placeholder={"Type your prompt here..."}
+        disabled={isLoading}
+        value={isLoading ? " Loading..." : user || ""}
+        onChange={(e) => {
+          if(!e?.target) return
+          const value = (e.target as any).value
+          if(!value) return
+          setUser(value)
+        }}
+      />
+      <weave-button
+        variant="solid"
+        onClick={onSubmit}
+      >
+        Submit
+      </weave-button>
+    </div>
   )
 }
