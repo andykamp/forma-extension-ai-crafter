@@ -32,24 +32,7 @@ export default function Sidebar() {
               setOpenAiVersion(version)
             }}
           />
-          <PromptHistoryList
-            onPromptMessageClick={(promptMessage) => {
-              setSelectedPromptMessage(promptMessage)
-              Forma.createMessagePort({
-                embeddedViewId: "floating-panel",
-                portName: "selectedPromptMessageId"
-              }).then((port) => { 
-                port.postMessage(promptMessage.Id)
-              })
-              // const url = new URL(window.location.href)
-              // const query = new URLSearchParams(url.search)
-              // query.set("selectedPrompMessageId", promptMessage.Id.toString())
-              // url.search = query.toString()
-              // window.history.pushState({}, '', `${url.pathname}?${query.toString()}`);
-              // window.dispatchEvent(new CustomEvent('urlChanged'))
-            }}
-            selectedPromptMessage={selectedPromptMessage}
-          />
+          <PromptHistoryList />
           <Prompt
             onPromptChange={(prompt) => {
               setPromptHistory([
@@ -69,7 +52,6 @@ export default function Sidebar() {
       <FloatPanelOpener
         polygon={polygon}
         promptHistory={promptHistory}
-        selectedPrompMessageId={selectedPromptMessage?.Id || 0}
       />
     </>
   );

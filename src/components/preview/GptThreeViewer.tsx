@@ -126,7 +126,7 @@ function GptThreeViewer(props: GptThreeViewerInput) {
       scene.remove(terrainMesh)
     }
     scene.add(mesh)
-    setPolygonMesh(mesh)
+    // setPolygonMesh(mesh)
   }
 
   // --------------------------------------
