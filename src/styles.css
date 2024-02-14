@@ -8,7 +8,7 @@ h1 {
   flex-direction: column;
   justify-content: center;
 
-  height: 48px;
+  height: 20px;
   font-size: 12px;
 }
 
@@ -21,6 +21,9 @@ weave-select {
   width: 100%;
   font-weight: 600;
   font-size: 11px;
+}
+.w-full {
+   width: 100%;
 }
 
 .row {
@@ -43,8 +46,8 @@ weave-select {
   justify-content: flex-end;
   align-items: baseline;
 
-  width: 70%;
-  max-width: 70%;
+  width: 100%;
+  max-width: 100%
 }
 
 .helpText {
