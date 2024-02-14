@@ -163,8 +163,12 @@ export function useInjectCode(props: UseInjectCodeProps) {
     const canvas = canvasRef.current;
     // Modify the script to use the created canvas
     // const modifiedCode = code.replace(/<script>|<\/script>/g, ''); //DUMMY_STR_CODE //code.replace(/document\.body\.appendChild\(renderer\.domElement\);/, '');
-    // @ts-ignore
-    const modifiedCode = code.match(/<script>([\s\S]*?)<\/script>/)[1]
+    const codeInsideScripts = code.match(/<script>([\s\S]*?)<\/script>/)
+    if(!codeInsideScripts || !codeInsideScripts.length) {
+      setError('No code was generated. Seems like the Ai had a bad run :(')
+      return  
+    }
+    const modifiedCode = codeInsideScripts[1]
 
     console.log('___COOOOOOODEEEE___', modifiedCode);
 
@@ -194,13 +198,34 @@ export function useInjectCode(props: UseInjectCodeProps) {
 
     } catch (error) {
       setError('Error executing the script');
-      console.error('Error executing the script:', error);
+      console.error('Error executing the generated script. Seems like the Ai had a bad run :(', error);
     }
   }, [camera, renderer, scene, code, terrainMesh]);
 
   return { error } as const
-
 }
+
+type RemoveNonBuiltinLightsProps = { 
+  scene: THREE.Scene | undefined
+}
+export function removeNonBuiltinLights(props: RemoveNonBuiltinLightsProps) {
+  const { scene } = props
+  if (!scene) return
+  const objectsToRemove: THREE.Object3D[] = [];
+
+  // First, collect all lights that are not built-in
+  scene.traverse((object) => {
+    if (object instanceof THREE.Light && (!object.userData.isBuiltin)) {
+      objectsToRemove.push(object);
+    }
+  });
+
+  // Then, remove collected objects from the scene
+  objectsToRemove.forEach((object) => {
+    scene.remove(object);
+  });
+}
+
 
 // --------------------------------------
 // Elevation helpers 

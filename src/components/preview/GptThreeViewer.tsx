@@ -8,10 +8,13 @@ import {
   useResize,
   useInjectCode,
   alignSceneChildrenToElevation,
-  generateMeshFromTriangles
+  generateMeshFromTriangles,
+  removeNonBuiltinLights
 } from "./utils"
-
-type GptThreeViewerInput = { code: string }
+import BuildingIcon from '../../icons/BuildingIcon';
+import TerrainIcon from '../../icons/TerrainIcon';
+import CloseIcon from '../../icons/CloseIcon';
+import LoadingAnimation from './LoadingAnimation';
 
 const isRaycastHeperEnabled = true
 const TERRAIN_ID = 'terrain'
@@ -23,16 +26,22 @@ const POLYGON_COLOR = "#BDA6A7"
 
 let renderIteration = 0
 
+type GptThreeViewerInput = { code: string }
+
 function GptThreeViewer(props: GptThreeViewerInput) {
   const { code } = props;
+  const [isLoading, setIsLoading] = useState(true);
+
   const [scene] = useState(new THREE.Scene())
   const [_controls, setControls] = useState<OrbitControls>()
   const [camera, setCamera] = useState<THREE.PerspectiveCamera>()
   const [renderer, setRenderer] = useState<THREE.WebGLRenderer>()
 
   const [terrainMesh, setTerrainMesh] = useState<THREE.Mesh>()
+  const [isTerrainVisible, setIsTerrainVisible] = useState(true);
   const [buildingsMesh, setBuildingsMesh] = useState<THREE.Mesh>()
-  const [polygonMesh, setPolygonMesh] = useState<THREE.Mesh>()
+  const [isBuildingsVisible, setIsBuildingsVisible] = useState(true);
+  // const [polygonMesh, setPolygonMesh] = useState<THREE.Mesh>()
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -51,7 +60,8 @@ function GptThreeViewer(props: GptThreeViewerInput) {
 
     mesh.rotation.x = -Math.PI / 2
     mesh.userData = {
-      id: TERRAIN_ID
+      id: TERRAIN_ID,
+      isBuiltin: true
     }
 
     if (terrainMesh != null) {
@@ -72,7 +82,8 @@ function GptThreeViewer(props: GptThreeViewerInput) {
     const mesh = generateMeshFromTriangles(buildingTriangles, BUILDINGS_COLOR)
     mesh.rotation.x = -Math.PI / 2
     mesh.userData = {
-      id: BUILDINGS_ID
+      id: BUILDINGS_ID,
+      isBuiltin: true
     }
 
     if (terrainMesh != null) {
@@ -108,7 +119,8 @@ function GptThreeViewer(props: GptThreeViewerInput) {
     })
     mesh.rotation.x = -Math.PI / 2
     mesh.userData = {
-      id: POLYGON_ID
+      id: POLYGON_ID,
+      isBuiltin: true
     }
     if (terrainMesh != null) {
       scene.remove(terrainMesh)
@@ -151,14 +163,24 @@ function GptThreeViewer(props: GptThreeViewerInput) {
 
     const dl = new THREE.DirectionalLight(0xffffff, 1)
     dl.position.set(0, 0.75, 0.2)
+    dl.userData = {
+      isBuiltin: true
+    }
+
     scene.add(dl)
 
     const l = new THREE.AmbientLight(0xffffff, 3)
+    l.userData = {
+      isBuiltin: true
+    }
     scene.add(l)
 
     initTerrain()
     initBuidings()
     initPolygon()
+    // setTimeout(() => {
+      setIsLoading(false)
+    // }, 3000)
   }, [])
 
   useEffect(() => {
@@ -182,37 +204,42 @@ function GptThreeViewer(props: GptThreeViewerInput) {
   // --------------------------------------
   // --------------------------------------
 
-  const alignElevatoin = useCallback(async () => {
+  const onAfterCodeInjection = useCallback(async () => {
+    // align scene children to elevation
     const blacklistedIds = [TERRAIN_ID, BUILDINGS_ID, POLYGON_ID]
     await alignSceneChildrenToElevation({ scene, terrainMesh, isRaycastHeperEnabled, blacklistedIds })
+
+    // remove added light that is not built in to the scene
+    removeNonBuiltinLights({ scene })
   }, [scene, terrainMesh, buildingsMesh])
 
   // resizer
   useResize({ camera, renderer, canvasRef })
 
   // code execution
-  useInjectCode({ camera, renderer, scene, canvasRef, terrainMesh, code, cb: alignElevatoin })
-
+  const { error } = useInjectCode({ camera, renderer, scene, canvasRef, terrainMesh, code, cb: onAfterCodeInjection })
 
   // --------------------------------------
   // UI buttons etc
   // --------------------------------------
 
-  function togglePolygon() {
-    if (polygonMesh) {
-      polygonMesh.visible = !polygonMesh.visible
-    }
-  }
+  // function togglePolygon() {
+  //   if (polygonMesh) {
+  //     polygonMesh.visible = !polygonMesh.visible
+  //   }
+  // }
 
   function toggleBuildings() {
     if (buildingsMesh) {
       buildingsMesh.visible = !buildingsMesh.visible
+      setIsBuildingsVisible(buildingsMesh.visible)
     }
   }
 
   function toggleTerrain() {
     if (terrainMesh) {
       terrainMesh.visible = !terrainMesh.visible
+      setIsTerrainVisible(terrainMesh.visible)
     }
   }
 
@@ -249,51 +276,75 @@ function GptThreeViewer(props: GptThreeViewerInput) {
   // --------------------------------------
 
   return (
-    <>
-      <div class="row">
+    <div class="canvas-container">
+
+      <div class="canvas-buttons">
+        {/* <weave-button */}
+        {/*   onClick={() => { */}
+        {/*     togglePolygon() */}
+        {/*   }} */}
+        {/* > */}
+        {/*   Toggle polygon */}
+        {/* </weave-button> */}
+
         <weave-button
-          onClick={() => {
-            togglePolygon()
-          }}
-        >
-          Toggle polygon
-        </weave-button>
-        <weave-button
+          disabled={isLoading}
           onClick={() => {
             toggleBuildings()
           }}
         >
           Toggle buildings
+          &nbsp;
+          {isBuildingsVisible
+            ? <BuildingIcon width="18" height="18" />
+            : <CloseIcon />
+          }
         </weave-button>
 
         <weave-button
+          disabled={isLoading}
           onClick={() => {
             toggleTerrain()
           }}
         >
           Toggle terrain
+          &nbsp;
+          {isTerrainVisible
+            ? <TerrainIcon />
+            : <CloseIcon />
+          }
         </weave-button>
 
-        <weave-button
-          variant="solid"
-          onClick={() => {
-            addToForma()
-          }}
-        >
-          Add generated models to forma
-        </weave-button>
       </div>
+
+      {error && <div class="canvas-error-message">{error}</div>}
+      {isLoading && <div class="canvas-loading-container">
+        Crafting ...
+        <LoadingAnimation />
+      </div>}
+
+      <weave-button
+        disabled={isLoading}
+        variant="solid"
+        class="canvas-submit-button"
+        onClick={() => {
+          addToForma()
+        }}
+      >
+        Crafting complete! Add to Forma
+      </weave-button>
 
       <canvas
         id="canvas"
         ref={canvasRef}
         style={{
+          pointerEvents: isLoading ? 'none' : 'auto',
           width: '100%',
           height: '100%',
           display: 'block', // Removes default canvas margin/spacing
         }}
       />
-    </>
+    </div>
   )
 };
 

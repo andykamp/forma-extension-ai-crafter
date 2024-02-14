@@ -58,3 +58,82 @@ weave-select {
 
   color: #3c3c3cb2;
 }
+
+.float-panel-container {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+}
+
+.canvas-container {
+  position: relative;
+  /* overflow: hidden; */
+  width: 100%;
+  height: 100%;
+}
+
+.canvas-buttons{
+  position: absolute;
+  top: 30px;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  background-color: rgba(255, 255, 255, 0.7); /* Semi-transparent background */
+  /* padding: 10px; */
+  /* border-radius: 8px; */
+
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.canvas-error-message {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  background: #BDA6A7; /* Example error text color */
+  color: #ffffff; /* Example error text color */
+  font-weight: 600;
+  /* color: rgba(255, 255, 255, 0.7); /1* Semi-transparent background *1/ */
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.canvas-loading-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 50%;
+  height: 60px;
+  z-index: 2;
+  background: gray; /* Example error text color */
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7); /* Semi-transparent background */
+  padding: 10px;
+  border-radius: 8px;
+
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+
+}
+
+.canvas-submit-button {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+
+

@@ -63,8 +63,7 @@ export default function FloatPanel() {
 
   // }, [inputs]);
   return (
-    <>
-      <div class="section">
+    <div class="float-panel-container">
         <PromptHistoryList
           projectId={inputs?.projectId || ""}
           onPromptMessageClick={(promptMessage) => {
@@ -72,7 +71,6 @@ export default function FloatPanel() {
           }}
           selectedPromptMessage={selectedPromptMessage}
         />
-        <p>Actions:</p>
         {selectedPromptMessage
           ? <GptThreeViewer
               key={selectedPromptMessage.Id}
@@ -80,7 +78,6 @@ export default function FloatPanel() {
           />
           : <p>No prompt selected</p>
         }
-      </div>
-    </>
+    </div>
   );
 }
