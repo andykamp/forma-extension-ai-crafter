@@ -42,6 +42,7 @@ export default function FloatPanel() {
   useEffect(() => {
     if(!messageId) return
     fetchMessage(messageId)
+    setSelectedPromptMessage(null)
   }, [ messageId, fetchMessage ])
 
   useEffect(() => {
@@ -59,72 +60,16 @@ export default function FloatPanel() {
     }
 })
 
-  // const handleChatPrompt = async () => {
-  //   const oldPromptHistory = [
-  //     {
-  //       "role": "system",
-  //       "content": "You are an AI assistant that helps people find information."
-  //     },
-  //   ]
-
-  //   const previewInputs = {
-  //     projectId: 'your_project_id', // Replace with your actual project ID
-  //     polygon: [[1, 2], [3, 4]], // Example polygon coordinates
-  //     promptHistory: [
-  //       ...oldPromptHistory,
-  //       {
-  //         "role": "user",
-  //         "content": "Create a building"
-  //       }
-  //     ]
-  //   };
-
-  //   try {
-  //     const result = await fetch('http://localhost:8080/chat', {
-  //       method: 'POST',
-  //       headers: {
-  //         'Content-Type': 'application/json'
-  //       },
-  //       body: JSON.stringify(previewInputs)
-  //     });
-
-  //     if (!result.ok) {
-  //       throw new Error('Network response was not ok');
-  //     }
-
-  //     const data = await result.json();
-  //     const lastMsg = data.choices[0].message.content;
-
-  //     // setResult(lastMsg);
-  //   } catch (error) {
-  //     console.error('Error:', error);
-  //   }
-  // }
-
-  // useEffect(() => {
-  //   if (!inputs) return;
-  //   console.log('INPUTS are ready', inputs);
-
-  //   // simulate call to chatGPT
-  //   setTimeout(() => {
-  //     setIsLoading(false);
-  //     handleChatPrompt()
-  //   }, 3000)
-
-  // }, [inputs]);
   return (
     <div class="float-panel-container">
-        {selectedPromptMessage
-          ? <GptThreeViewer
-              key={selectedPromptMessage.Id}
-              code={selectedPromptMessage.Assistant}
-          />
-          : <p>No prompt selected</p>
-        }
+      {selectedPromptMessage
+        ? <GptThreeViewer
+            key={selectedPromptMessage.Id}
+            code={selectedPromptMessage.Assistant}
+        />
+        : <p>No prompt selected</p>
+      }
+      {isLoading && <p>Loading...</p>}
     </div>
   );
 }
-function useCallBack(arg0: (messageId: string) => Promise<void>, arg1: never[]) {
-  throw new Error("Function not implemented.");
-}
-
