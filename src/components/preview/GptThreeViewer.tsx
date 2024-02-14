@@ -7,7 +7,8 @@ import {
   addPolygon,
   useResize,
   useInjectCode,
-  alignSceneChildrenToElevation
+  alignSceneChildrenToElevation,
+  generateMeshFromTriangles
 } from "./utils"
 
 type GptThreeViewerInput = { code: string }
@@ -15,6 +16,10 @@ type GptThreeViewerInput = { code: string }
 const isRaycastHeperEnabled = true
 const TERRAIN_ID = 'terrain'
 const BUILDINGS_ID = 'buildings'
+const TERRAIN_COLOR = "#CDCDCD"
+const BUILDINGS_COLOR = "#F8F8F8"
+const POLYGON_ID = 'polygon'
+const POLYGON_COLOR = "#BDA6A7"
 
 let renderIteration = 0
 
@@ -31,6 +36,10 @@ function GptThreeViewer(props: GptThreeViewerInput) {
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
+  // --------------------------------------
+  // External data setup
+  // --------------------------------------
+
   async function initTerrain() {
     const terrainPath = await Forma.geometry.getPathsByCategory({
       category: "terrain",
@@ -38,18 +47,8 @@ function GptThreeViewer(props: GptThreeViewerInput) {
     const terrainTriangles = await Forma.geometry.getTriangles({
       path: terrainPath[0],
     })
-    const geometry = new THREE.BufferGeometry()
-    geometry.setAttribute(
-      "position",
-      new THREE.BufferAttribute(terrainTriangles, 3),
-    )
-    geometry.computeVertexNormals()
-    const material = new THREE.MeshPhongMaterial({
-      color: "#CDCDCD",
-      side: THREE.DoubleSide
-    });
+    const mesh = generateMeshFromTriangles(terrainTriangles, TERRAIN_COLOR)
 
-    const mesh = new THREE.Mesh(geometry, material)
     mesh.rotation.x = -Math.PI / 2
     mesh.userData = {
       id: TERRAIN_ID
@@ -58,6 +57,7 @@ function GptThreeViewer(props: GptThreeViewerInput) {
     if (terrainMesh != null) {
       scene.remove(terrainMesh)
     }
+
     scene.add(mesh)
     setTerrainMesh(mesh)
   }
@@ -69,18 +69,7 @@ function GptThreeViewer(props: GptThreeViewerInput) {
     const buildingTriangles = await Forma.geometry.getTriangles({
       excludedPaths: terrainPath
     })
-    const geometry = new THREE.BufferGeometry()
-    geometry.setAttribute(
-      "position",
-      new THREE.BufferAttribute(buildingTriangles, 3),
-    )
-    geometry.computeVertexNormals()
-    const material = new THREE.MeshPhongMaterial({
-      color: "#F8F8F8",
-      side: THREE.DoubleSide
-    });
-
-    const mesh = new THREE.Mesh(geometry, material)
+    const mesh = generateMeshFromTriangles(buildingTriangles, BUILDINGS_COLOR)
     mesh.rotation.x = -Math.PI / 2
     mesh.userData = {
       id: BUILDINGS_ID
@@ -89,15 +78,43 @@ function GptThreeViewer(props: GptThreeViewerInput) {
     if (terrainMesh != null) {
       scene.remove(terrainMesh)
     }
+
     scene.add(mesh)
     setBuildingsMesh(mesh)
   }
 
+  // @todo: import stuff properly here
   async function initPolygon() {
-    const p = await addPolygon()
-    scene.add(p)
-    setPolygonMesh(p)
-
+    const hardcodedPolygon = [
+      {
+        x: 219.33777656630846,
+        y: -50.91393813236924,
+        z: 22.12495751785366
+      },
+      {
+        x: 231.47731857895823,
+        y: -100.54778426098883,
+        z: 21.63478611987682
+      },
+      {
+        x: 166.84892464529258,
+        y: -93.08562445100738,
+        z: 20.927945636131312
+      }
+    ]
+    const mesh = await addPolygon({
+      polygon: hardcodedPolygon,
+      color: POLYGON_COLOR
+    })
+    mesh.rotation.x = -Math.PI / 2
+    mesh.userData = {
+      id: POLYGON_ID
+    }
+    if (terrainMesh != null) {
+      scene.remove(terrainMesh)
+    }
+    scene.add(mesh)
+    setPolygonMesh(mesh)
   }
 
   // --------------------------------------
@@ -166,7 +183,7 @@ function GptThreeViewer(props: GptThreeViewerInput) {
   // --------------------------------------
 
   const alignElevatoin = useCallback(async () => {
-    const blacklistedIds = [TERRAIN_ID, BUILDINGS_ID]
+    const blacklistedIds = [TERRAIN_ID, BUILDINGS_ID, POLYGON_ID]
     await alignSceneChildrenToElevation({ scene, terrainMesh, isRaycastHeperEnabled, blacklistedIds })
   }, [scene, terrainMesh, buildingsMesh])
 
@@ -233,36 +250,39 @@ function GptThreeViewer(props: GptThreeViewerInput) {
 
   return (
     <>
-      <button
-        onClick={() => {
-          togglePolygon()
-        }}
-      >
-        Toggle polygon
-      </button>
-      <button
-        onClick={() => {
-          toggleBuildings()
-        }}
-      >
-        Toggle buildings
-      </button>
+      <div class="row">
+        <weave-button
+          onClick={() => {
+            togglePolygon()
+          }}
+        >
+          Toggle polygon
+        </weave-button>
+        <weave-button
+          onClick={() => {
+            toggleBuildings()
+          }}
+        >
+          Toggle buildings
+        </weave-button>
 
-      <button
-        onClick={() => {
-          toggleTerrain()
-        }}
-      >
-        Toggle terrain
-      </button>
+        <weave-button
+          onClick={() => {
+            toggleTerrain()
+          }}
+        >
+          Toggle terrain
+        </weave-button>
 
-      <button
-        onClick={() => {
-          addToForma()
-        }}
-      >
-        Add generated models to forma
-      </button>
+        <weave-button
+          variant="solid"
+          onClick={() => {
+            addToForma()
+          }}
+        >
+          Add generated models to forma
+        </weave-button>
+      </div>
 
       <canvas
         id="canvas"

@@ -3,6 +3,7 @@ import { RefObject } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
 import * as THREE from 'three';
 
+// @todo:remove
 export function rotateAllObjectsAroundSceneAxis(scene: THREE.Scene, angle: number, axis: string) {
   const rotationMatrix = new THREE.Matrix4(); // Create a new rotation matrix
 
@@ -35,33 +36,36 @@ export function rotateAllObjectsAroundSceneAxis(scene: THREE.Scene, angle: numbe
   });
 }
 
+export function generateMeshFromTriangles(triangles: Float32Array, color: string) {
+  const geometry = new THREE.BufferGeometry()
+  geometry.setAttribute(
+    "position",
+    new THREE.BufferAttribute(triangles, 3),
+  )
+  geometry.computeVertexNormals()
+  const material = new THREE.MeshPhongMaterial({
+    color: color,
+    side: THREE.DoubleSide
+  });
+
+  const mesh = new THREE.Mesh(geometry, material)
+  return mesh
+}
+
+
 type Point = {
   x: number;
   y: number;
   z: number;
 }
 
-const defaultPoly: Point[] = [
-  {
-    x: 219.33777656630846,
-    y: -50.91393813236924,
-    z: 22.12495751785366
-  },
-  {
-    x: 231.47731857895823,
-    y: -100.54778426098883,
-    z: 21.63478611987682
-  },
-  {
-    x: 166.84892464529258,
-    y: -93.08562445100738,
-    z: 20.927945636131312
-  }
-]
+type AddPolygonProps = {
+  polygon: Point[];
+  color?: string;
+}
 
-export async function addPolygon(
-  polygon = defaultPoly
-) {
+export async function addPolygon(props: AddPolygonProps) {
+  const { polygon, color = '#BDA6A7' } = props
 
   const arr = new Float32Array(polygon.length * 3)
   for (let i = 0; i < polygon.length; i++) {
@@ -79,10 +83,14 @@ export async function addPolygon(
   )
   let p = new THREE.Mesh(
     polyGeometry,
-    new THREE.MeshBasicMaterial({ color: "#BDA6A7", side: THREE.DoubleSide })
+    new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide })
   )
   return p
 }
+
+// --------------------------------------
+// Resize stuff 
+// --------------------------------------
 
 type useResizeProps = {
   camera: THREE.PerspectiveCamera | undefined;
@@ -131,6 +139,10 @@ export function useResize(props: useResizeProps) {
   }, [camera, renderer]);
 
 }
+
+// --------------------------------------
+// Code inject stuff
+// --------------------------------------
 
 type UseInjectCodeProps = {
   camera: THREE.PerspectiveCamera | undefined;
@@ -190,11 +202,9 @@ export function useInjectCode(props: UseInjectCodeProps) {
 
 }
 
-
 // --------------------------------------
 // Elevation helpers 
 // --------------------------------------
-
 
 function addRaycastHelper(
   scene: THREE.Scene,
@@ -251,8 +261,8 @@ type AlignSceneChildrenToElevationProps = {
 }
 
 export async function alignSceneChildrenToElevation(props: AlignSceneChildrenToElevationProps) {
-  const { 
-    scene, 
+  const {
+    scene,
     terrainMesh,
     isRaycastHeperEnabled,
     blacklistedIds = []
