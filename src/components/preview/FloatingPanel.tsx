@@ -59,8 +59,6 @@ export default function FloatPanel() {
       };
     }
   })
-
-  console.log('selectedPromptMessage',selectedPromptMessage );
   return (
     <div class="float-panel-container">
         <GptThreeViewer

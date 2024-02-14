@@ -137,8 +137,6 @@ export function useResize(props: useResizeProps) {
       if (renderer) {
         renderer.setSize(window.innerWidth, window.innerHeight);
       }
-
-      console.log('Resized to: ', window.innerWidth, window.innerHeight);
     };
 
     // Initial resize
@@ -186,8 +184,6 @@ export function useInjectCode(props: UseInjectCodeProps) {
       return
     }
     const modifiedCode = codeInsideScripts[1] //DUMMY_STR_CODE
-
-    console.log('___COOOOOOODEEEE___', modifiedCode);
 
     try {
       // Execute the script within the context of the containerRef
@@ -290,7 +286,6 @@ function getThreejsElevation(x: number, z: number, surfaceMesh: THREE.Mesh) {
     const intersectionPoint = intersects[0].point;
     return intersectionPoint.y
   } else {
-    console.log("No intersection found. Ensure the point is above the surface and within bounds.");
     return null
   }
 }
@@ -310,15 +305,10 @@ export async function alignSceneChildrenToElevation(props: AlignSceneChildrenToE
     blacklistedIds = []
   } = props
 
-  console.log('SCENE TRAV',terrainMesh );
-
   if (!terrainMesh) return
-
-  console.log('SCENE TRAV', );
   scene.traverse(async (child) => {
     const userData = child.userData
     if (userData.id === "gptGroup") {
-      console.log('UPATE ELEVATIOn', );
       const { x, y, z } = child.position
       // const elevation = await Forma.terrain.getElevationAt({ x, y: z })
       const elevation = getThreejsElevation(x, z, terrainMesh) || 0

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import "./promp.history.css"
 import { usePreviewInputs } from "../../preview/preview";
 import type { ProjectMessage } from "../../../lib/types";
+import { Forma } from "forma-embedded-view-sdk/auto";
 
 
 async function getProjectMessages(projectId: string) {
@@ -49,7 +50,6 @@ export default function PromptHistoryList() {
 
   useEffect(() => {
     if(!selectedPromptMessage) return
-    console.log("rerender maybe?")
     fetchMessages()
   }, [selectedPromptMessage, fetchMessages])
 
@@ -58,6 +58,12 @@ export default function PromptHistoryList() {
     if(selectedPromptMessage) return
     lastItemRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
+
+  // useEffect(() => {
+  //   window.addEventListener('refetch', (e) => { 
+  //     console.log("refetch")
+  //   })
+  // }, [])
 
   return (
     <div
@@ -82,6 +88,7 @@ export default function PromptHistoryList() {
                   : "prompt-history-item"
                 }
                 onClick={() => {
+                  // openFloatingPanel()
                   setSelectedPromptMessage(message)
                   const url = new URL(window.location.href)
                   const query = new URLSearchParams(url.search)
