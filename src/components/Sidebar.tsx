@@ -1,29 +1,45 @@
 import { FloatPanelOpener } from "./preview/FloatPanelOpener";
 import { useState } from "preact/hooks";
-import SelectArea from "./SelectArea";
 import Prompt from "./prompt/Prompt";
-import { type PromptHistory } from "./preview/preview";
 import "./styles.css";
-import type { Vec3 } from "forma-embedded-view-sdk/dist/internal/scene/design-tool";
 import SelectOpenAiVersion from "./SelectOpenAiVersion";
-import PromptHistoryList, { type ProjectMessage } from "./prompt/PromptHistory/PromptHistoryList";
+import PromptHistoryList from "./prompt/PromptHistory/PromptHistoryList";
+import { Forma } from "forma-embedded-view-sdk/auto";
 
 
 export default function Sidebar() {
-  const [polygonId, setPolygonId] = useState<string | null>(null)
-  const [promptHistory, setPromptHistory] = useState<PromptHistory[]>([]) //we dont need this here. its used in the float panel but we only need to pass the id and fetch the message form the id.
-  const [polygon, setPolygon] = useState<Vec3[]>([])
+  // const [polygonId, setPolygonId] = useState<string | null>(null)
+  // const [polygon, setPolygon] = useState<Vec3[]>([])
+  // const [promptHistory, setPromptHistory] = useState<PromptHistory[]>([])
   const [openAiVersion, setOpenAiVersion] = useState<number>(2)
-  const [selectedPromptMessage, setSelectedPromptMessage ] = useState<ProjectMessage | null>(null)
-
+  Forma.onEmbeddedViewStateChange(({ embeddedViewId, state }) => {
+    if (embeddedViewId !== "floating-panel") return
+    if (state !== "connected") {
+      window.removeEventListener('historyPushState', () => null)
+      return
+    }
+    const handleCustomUrlChangeEvent = () => {
+      const url = new URL(window.location.href);
+      const query = new URLSearchParams(url.search);
+      const messageId = query.get("messageId");
+      Forma.createMessagePort({
+        embeddedViewId: "floating-panel",
+        portName: "selectedPromptMessageId"
+      }).then((port) => {
+        port.postMessage(messageId);
+      })
+    }
+    handleCustomUrlChangeEvent()
+    window.addEventListener('historyPushState', () => handleCustomUrlChangeEvent())
+  })
   return (
     <>
       <div className={"sidebar-wrapper"}>
-        <SelectArea
+        {/* <SelectArea
           polygonId={polygonId}
           onDrawnPolygon={setPolygonId}
           onPolygon={setPolygon}
-        />
+        /> */}
         <div>
           <SelectOpenAiVersion
             value={openAiVersion}
@@ -31,33 +47,11 @@ export default function Sidebar() {
               setOpenAiVersion(version)
             }}
           />
-          <PromptHistoryList
-            onPromptMessageClick={(promptMessage) => {
-              setSelectedPromptMessage(promptMessage)
-            }}
-            selectedPromptMessage={selectedPromptMessage}
-          />
-          <Prompt
-            onPromptChange={(prompt) => {
-              setPromptHistory([
-                ...promptHistory,
-                {
-                  role: "User",
-                  content: prompt
-                }
-              ])
-            }}
-            onPromptSubmit={(projectMessage) => { 
-              setSelectedPromptMessage(projectMessage)
-            }}
-          />
+          <PromptHistoryList />
+          <Prompt />
         </div>
       </div>
-      <FloatPanelOpener
-        polygon={polygon}
-        promptHistory={promptHistory}
-        selectedPrompMessageId={selectedPromptMessage?.Id || 0}
-      />
+      <FloatPanelOpener />
     </>
   );
 }

@@ -3,34 +3,15 @@ import { useState, useEffect } from "preact/hooks";
 import type { PromptHistory } from "./preview";
 import type { Vec3 } from "forma-embedded-view-sdk/dist/internal/scene/design-tool";
 
-function getFloatingPanelUrl(polygon: Vec3[], promptHistory: PromptHistory[], selectedPrompMessageId: number) {
+function getFloatingPanelUrl() {
   const url = new URL(
     'http://localhost:8081/floating-panel' 
   )
 
-  // also add the polygon to the url to be used
-  if(polygon != null) {
-    const query = new URLSearchParams(url.search)
-    query.set("polygon", JSON.stringify(polygon))
-    query.set("promptHistory", JSON.stringify(promptHistory))
-    query.set("selectedPrompMessageId", selectedPrompMessageId.toString())
-    url.search = query.toString()
-  }
-
   return url.toString()
 }
 
-export type FloatPanelOpenerProps = {
-  polygon: Vec3[],
-  promptHistory: PromptHistory[],
-  selectedPrompMessageId: number
-};
-export function FloatPanelOpener(props: FloatPanelOpenerProps) {
-  const {
-    polygon,
-    promptHistory,
-    selectedPrompMessageId
-  } = props
+export function FloatPanelOpener() {
   const [siteLimitFootprint, setSiteLimitFootprint] = useState<any>();
 
   useEffect(() => {
@@ -44,8 +25,8 @@ export function FloatPanelOpener(props: FloatPanelOpenerProps) {
   }, []);
 
   function openFloatingPanel() {
-    if(selectedPrompMessageId === 0) return
-    const url = getFloatingPanelUrl(polygon, promptHistory, selectedPrompMessageId);
+    // if(selectedPrompMessageId === 0) return
+    const url = getFloatingPanelUrl();
     void Forma.openFloatingPanel({
       embeddedViewId: "floating-panel",
       url,
@@ -61,7 +42,6 @@ export function FloatPanelOpener(props: FloatPanelOpenerProps) {
       <div class="section">
         <weave-button
           variant="solid" onClick={openFloatingPanel}
-          disabled={selectedPrompMessageId === 0}
         >
         Open terrain viewer 
       </weave-button>

@@ -1,20 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import "./promp.history.css"
 import { usePreviewInputs } from "../../preview/preview";
-
-export type ProjectMessage = {
-  Id: number;
-  DeploymentCode: number;
-  ProjectId: string;
-  User: string;
-  Assistant: string;
-  Prompt_tokens: number;
-  Completion_tokens: number;
-  Total_tokens: number;
-  CreatedAt: string;
-  UpdatedAt: string;
-  IsDeleted: boolean;
-};
+import type { ProjectMessage } from "../../../lib/types";
 
 
 async function getProjectMessages(projectId: string) {
@@ -55,17 +42,10 @@ function useProjectMessages() {
   return { fetchMessages, messages, isLoading, error }
 }
 
-export type PromptHistoryListProps = {
-  onPromptMessageClick?: (projectMessage: ProjectMessage) => void,
-  selectedPromptMessage?: ProjectMessage | null
-}
-export default function PromptHistoryList(props: PromptHistoryListProps) {
-  const {
-    onPromptMessageClick,
-    selectedPromptMessage
-  } = props
+export default function PromptHistoryList() {
   const { fetchMessages, messages } = useProjectMessages()
   const lastItemRef = useRef<HTMLLIElement | null>(null)
+  const [selectedPromptMessage, setSelectedPromptMessage] = useState<ProjectMessage | null>(null)
 
   useEffect(() => {
     if(!selectedPromptMessage) return
@@ -75,7 +55,7 @@ export default function PromptHistoryList(props: PromptHistoryListProps) {
 
   useEffect(() => {
     if(!messages) return
-    console.log("scrolling")
+    if(selectedPromptMessage) return
     lastItemRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
 
@@ -102,7 +82,14 @@ export default function PromptHistoryList(props: PromptHistoryListProps) {
                   : "prompt-history-item"
                 }
                 onClick={() => {
-                  onPromptMessageClick?.(message)
+                  setSelectedPromptMessage(message)
+                  const url = new URL(window.location.href)
+                  const query = new URLSearchParams(url.search)
+                  if(!message?.Id) return
+                  query.set("messageId", message.Id.toString())
+                  url.search = query.toString()
+                  window.history.pushState({}, '', `${url.pathname}?${query.toString()}`)
+                  window.dispatchEvent(new CustomEvent('historyPushState', { detail: { messageId: message.Id.toString() }}));
                 }}
               >
                 <span>{message.User}</span>

@@ -26,12 +26,10 @@ function safeParse(str: string) {
 
 export function usePreviewInputs() {
   const [inputs, setInputs] = useState<PreviewInputs>();
-  console.log('inputs', inputs);
   useEffect(() => {
 
     // Create a URLSearchParams object from window.location.search
     const queryParams = new URLSearchParams(window.location.search);
-    console.log('queryParams', queryParams);
     const i: PreviewInputs = {
       projectId: queryParams.get('projectId') || '',
       promptHistory: safeParse(queryParams.get('promptHistory') || ''),
