@@ -11,7 +11,7 @@ import PromptHistoryList, { type ProjectMessage } from "./prompt/PromptHistory/P
 
 export default function Sidebar() {
   const [polygonId, setPolygonId] = useState<string | null>(null)
-  const [promptHistory, setPromptHistory] = useState<PromptHistory[]>([])
+  const [promptHistory, setPromptHistory] = useState<PromptHistory[]>([]) //we dont need this here. its used in the float panel but we only need to pass the id and fetch the message form the id.
   const [polygon, setPolygon] = useState<Vec3[]>([])
   const [openAiVersion, setOpenAiVersion] = useState<number>(2)
   const [selectedPromptMessage, setSelectedPromptMessage ] = useState<ProjectMessage | null>(null)
