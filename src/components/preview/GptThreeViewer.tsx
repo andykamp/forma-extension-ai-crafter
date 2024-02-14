@@ -54,6 +54,41 @@ function GptThreeViewer(props: GptThreeViewerInput) {
   // External data setup
   // --------------------------------------
 
+  async function storeGptMesh(glbData) {
+    setIsLoading(true)
+    // store intergrated mesh
+    const upload = await Forma.integrateElements.uploadFile({
+      data: glbData
+    })
+    const { urn } = await Forma.integrateElements.createElementHierarchy({
+      data: {
+        rootElement: "root",
+        elements: {
+          root: {
+            id: "root",
+            properties: {
+              geometry: {
+                type: "File",
+                format: "glb",
+                // @ts-ignore
+                useVertexColoring: true,
+                s3Id: upload.fileId,
+              },
+            },
+          },
+        },
+      },
+    })
+
+    // put to scene
+    await Forma.proposal.addElement({ urn: urn })
+
+    // close the floating panel
+    const embeddedViewId = Forma.getEmbeddedViewId()
+    Forma.closeEmbeddedView({ embeddedViewId })
+
+  }
+
   async function initTerrain() {
     const terrainPath = await Forma.geometry.getPathsByCategory({
       category: "terrain",
@@ -345,6 +380,7 @@ function GptThreeViewer(props: GptThreeViewerInput) {
     if (buildingsMesh) {
       scene.add(buildingsMesh)
     }
+    storeGptMesh(glb)
   }
 
   // --------------------------------------
