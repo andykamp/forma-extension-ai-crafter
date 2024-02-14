@@ -103,7 +103,7 @@ export default function PromptHistoryList() {
                 window.dispatchEvent(new CustomEvent('historyPushState', { detail: { messageId: message.Id.toString() } }));
               }}
             >
-              <span>{message.User} {message.DeploymentCode}</span>
+              <span>{message.User}</span>
               {/* <span>{message.Assistant}</span> */}
               {/* <span>{message.Prompt_tokens}</span> */}
               {/* <span>{message.Completion_tokens}</span>
